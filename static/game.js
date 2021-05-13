@@ -98,7 +98,7 @@ var floatingTextEl
 
 
 function randomRange(from, to) {
-    rangeLenght = to - from
+    let rangeLenght = to - from
     return Math.round(Math.random() * rangeLenght + from)
 }
 
@@ -363,7 +363,7 @@ async function onSymbolGlobalCorrect(playerId, symbolId) {
     }, 150)
 
     deckBlocked = false
-    discardCard(toPile=(playerId == curPlayerId))
+    discardCard((playerId == curPlayerId))
 }
 
 function onSymbolWrong() {
@@ -486,13 +486,13 @@ async function deckAnimate(deck, deckAnimMillSpeed) {
     }
 
     while(true) {
-        cardImages = deckImages.pop()
+        let cardImages = deckImages.pop()
         cardLeftNumEl.innerHTML++
 
         if (cardImages == undefined)
             return
 
-        for(image of cardImages) {
+        for(let image of cardImages) {
             image.set({ opacity: 1})
         }
 
@@ -542,7 +542,7 @@ async function onRoundStart(seed, playersData) {
     floatingTextEl.classList.add('hide')
     
     deck = deckInit(
-        cardSymbols=randomizeCards(seed, generateCards(symbolsNum, symbolsOffsets)), 
+        randomizeCards(seed, generateCards(symbolsNum, symbolsOffsets)), 
         deckPos, 
         deckOffRange
     )
@@ -551,7 +551,7 @@ async function onRoundStart(seed, playersData) {
     cardLeftEl.classList.remove('hide')
     
     await deckAnimate(deck, deckAnimDuration)
-    discardCard(toPile=true)
+    discardCard(true)
 }
 
 async function onRoundEnd() {
@@ -628,7 +628,7 @@ async function onEndScreen(players) {
     playerScoreEl.innerHTML = ''
     playerEndScreenEl.classList.remove('hide')
 
-    for([name, score] of players) {
+    for(const [name, score] of players) {
         let node = document.createElement('TR')
         node.innerHTML = `<td>${name}</td><td>${score}</td>`
         playerScoreEl.appendChild(node)
