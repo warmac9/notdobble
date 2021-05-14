@@ -1,44 +1,5 @@
 
 
-var deck
-var deckPos = [420, 50]
-
-var deckBlocked = false
-const deckBlockedDuration = 1500
-const iconFadeDuration = 200
-
-const deckOffRange = [10, 20]
-const deckOffFreq = 5
-
-const deckAnimDuration = 10
-const discardAnimDuration = 100
-
-var pile
-const cardSize = 320
-
-const pilePos = [20, 260]
-const otherPilePos = [0, -cardSize]
-const otherPileDiscardOpacity = 0.25
-
-const cardLeftOffset = [
-    deckPos[0]+cardSize-30, 
-    deckPos[1]+cardSize-30
-]
-
-var playerDisplayOffset = [60, 0]
-var playerLastDisplay
-var playerStreak
-
-const roundStartWait = 700
-const roundEndWait = 1000
-const endScreenWait = 1000
-
-const playerSendNameTimeout = 500
-var socket
-var players
-var curPlayerId
-
-
 function randomRange(from, to) {
     let rangeLenght = to - from
     return Math.round(Math.random() * rangeLenght + from)
@@ -142,10 +103,11 @@ function randomizeCards(seed, cardSymbols) {
     return cardSymbols
 }
 
-
+// -----> ss 
 
 //canvasManager.js
 //dependant canvas
+//PASS ASSETS
 
 var canvas
 
@@ -177,7 +139,7 @@ function initImage(imageElement, options) {
     return imgInstance
 }
 
-function initCard(pos, symbolsId, cardTemplate, options=[], rotations) {
+function initCard(pos, symbolsImages, symbolsId, cardTemplate, options=[], rotations) {
     let images = []
 
     let cardInstance = initImage(assets.card, {
@@ -198,7 +160,7 @@ function initCard(pos, symbolsId, cardTemplate, options=[], rotations) {
         else
             rotation = rotations[index]
 
-        let symbolInstance = initImage(assets.icons[symbol], {
+        let symbolInstance = initImage(symbolsImages[symbol], {
             left: pos[0] + offset[0],
             top: pos[1] + offset[1],
             rotate: rotation,
@@ -215,12 +177,12 @@ function initCard(pos, symbolsId, cardTemplate, options=[], rotations) {
         group: new fabric.Group(images, { left: pos[0], top: pos[1] }),
         images: images,
         cardImage: images[0],
-        iconImages: images.slice(1),
+        symbolImages: images.slice(1),
         symbols: symbolsId
     }
 }
 
-function initDeck(cardSymbols, deckPos, deckOffRange) {
+function initDeck(cardSymbols, deckPos, deckOffRange, deckOffFreq) {
     let deck = []
 
     for (let index = 0; index < cardSymbols.length; index++) {
@@ -232,7 +194,7 @@ function initDeck(cardSymbols, deckPos, deckOffRange) {
         }
 
         deck.push(
-            initCard(cardPos, cardSymbols[index], cardTemplate, { opacity: 0 })
+            initCard(cardPos, assets.symbols, cardSymbols[index], cardTemplate, { opacity: 0 })
         )
     }
 
@@ -243,12 +205,13 @@ function moveTopCardFront(topCard) {
     let oldTopCard = topCard
     let rotations = []
 
-    oldTopCard.iconImages.forEach(image => {
+    oldTopCard.symbolImages.forEach(image => {
         rotations.push(image.angle)
     })
     
     topCard = initCard(
         [oldTopCard.group.left, oldTopCard.group.top],
+        assets.symbols,
         oldTopCard.symbols,
         cardTemplate,
         [],
@@ -327,24 +290,22 @@ async function deckAnimate(deck, deckAnimMillSpeed) {
     }
 }
 
-async function discardAnimate(topCard, pileCard, toMyPile) {
+async function discardAnimate(topCard, pileCard, endPos, toMyPile, animDuration, otherPileDiscardOpacity) {
     if(topCard == undefined) return
 
     let animateArgs = []
-    let cardEndPos = toMyPile ? pilePos : otherPilePos
-
     topCard = moveTopCardFront(topCard)
 
     animateArgs.push({
         obj: topCard.group,
         attr: 'left',
-        endValue: cardEndPos[0],
+        endValue: endPos[0],
         duration: discardAnimDuration
     })
     animateArgs.push({
         obj: topCard.group,
         attr: 'top',
-        endValue: cardEndPos[1],
+        endValue: endPos[1],
         duration: discardAnimDuration
     })
 
@@ -354,50 +315,69 @@ async function discardAnimate(topCard, pileCard, toMyPile) {
     await animate(animateArgs)
 
     if(pileCard != undefined)
-        pile.images.forEach(image => {
+        pileCard.images.forEach(image => {
             canvas.remove(image)
         })
 
     return topCard
 }
 
-function cardHideAnimate() {
+function symbolsFadeAnimate(symbolImages, opacity, fadeDuration) {
     let animateArgs = []
-    deckBlocked = true
 
-    deck[deck.length - 1].images.slice(1).forEach(image => {
+    symbolImages.forEach(image => {
         animateArgs.push({
             obj: image,
             attr: 'opacity',
-            endValue: 0,
-            duration: iconFadeDuration
+            endValue: opacity,
+            duration: fadeDuration
         })
     })
     animate(animateArgs)
-
-    setTimeout(function() {
-        if(!deckBlocked) return
-
-        deckBlocked = false
-        let animateArgs = []
-
-        deck[deck.length - 1].images.slice(1).forEach(image => {
-            animateArgs.push({
-                obj: image,
-                attr: 'opacity',
-                endValue: 1,
-                duration: iconFadeDuration
-            })
-        })
-        animate(animateArgs)
-
-    }, deckBlockedDuration)
 }
 
+// -----> ss 
 
-
-//sceneManager.js
+//game.js
 //modifies html
+
+var deck
+var deckPos = [420, 50]
+
+var deckBlocked = false
+const deckBlockedDuration = 1500
+const symbolFadeDuration = 200
+
+const deckOffRange = [10, 20]
+const deckOffFreq = 5
+
+const deckAnimDuration = 10
+const discardAnimDuration = 100
+
+var pile
+const cardSize = 320
+
+const pilePos = [20, 260]
+const otherPilePos = [0, -cardSize]
+const otherPileDiscardOpacity = 0.25
+
+const cardLeftOffset = [
+    deckPos[0]+cardSize-30, 
+    deckPos[1]+cardSize-30
+]
+
+var playerDisplayOffset = [60, 0]
+var playerLastDisplay
+var playerStreak
+
+const roundStartWait = 700
+const roundEndWait = 1000
+const endScreenWait = 1000
+
+const playerSendNameTimeout = 500
+var players
+var curPlayerId
+
 
 var canvasEl
 var cardLeftEl
@@ -456,7 +436,7 @@ function setPosTextEl() {
 }
 
 async function discardCard(toMyPile=false) {
-    let topCard = await discardAnimate(deck.pop(), pile, toMyPile)
+    let topCard = await discardAnimate(deck.pop(), pile, (toMyPile ? pilePos : otherPilePos), toMyPile, discardAnimDuration, otherPileDiscardOpacity)
 
     if(toMyPile)
         pile = topCard
@@ -497,11 +477,17 @@ function onSymbolSelected(event) {
         !symbolBelongTopCard(event)) return
 
     if(pile.symbols.includes(symbolId) && deck[deck.length-1].symbols.includes(symbolId)) {
-        sendCorrectSymbol(symbolId)
+        sendCorrectSymbol(symbolId, deck.length)
         return
     }
 
-    cardHideAnimate()
+    deckBlocked = true
+    symbolsFadeAnimate(deck[deck.length - 1].symbolImages, 0, symbolFadeDuration)
+
+    setTimeout(function() {
+        symbolsFadeAnimate(deck[deck.length - 1].symbolImages, 1, symbolFadeDuration)
+        deckBlocked = false
+    }, deckBlockedDuration)
 }
 
 function resetScene() {}
@@ -520,7 +506,8 @@ async function onRoundStart(seed, playersData) {
     deck = initDeck(
         randomizeCards(seed, generateCards(symbolsNum, symbolsOffsets)), 
         deckPos, 
-        deckOffRange
+        deckOffRange,
+        deckOffFreq
     )
     
     cardLeftNumEl.innerHTML = 0
@@ -531,6 +518,8 @@ async function onRoundStart(seed, playersData) {
 }
 
 async function onRoundEnd() {
+    await wait(roundEndWait)
+
     deck.push(pile)
     deck.forEach(card => {
         card.images.forEach(image => {
@@ -609,9 +598,10 @@ function initElements() {
 //     )`
 // })
 
-
+// -----> ss 
 
 //socketManager.js
+var socket
 
 function sendReady(ready) {
     socket.emit('set-player', { ready: ready })
@@ -625,11 +615,12 @@ function sendName() {
     socket.emit('set-player', { name: playerNameInputEl.value })
 }
 
-function sendCorrectSymbol(symbolId) {
-    socket.emit('symbol-selected', symbolId, deck.length)
+function sendCorrectSymbol(symbolId, deckLength) {
+    socket.emit('symbol-selected', symbolId, deckLength)
 }
 
 function onConnection() {
+    //INSTEAD PASS TO GAME MODULE
     curPlayerId = socket.id
 
     socket.on('round-start', (seed, players) => {
@@ -645,7 +636,6 @@ function onConnection() {
     })
 
     socket.on('round-end', async (players) => {
-        await wait(roundEndWait)
         await onRoundEnd()
         onEndScreen(players)
     })
@@ -660,12 +650,12 @@ function initSocketConnection() {
     })
 }
 
-
+// -----> ss 
 
 //gameLoad.js
 var assets = {
     card: null,
-    icons: []
+    symbols: []
 }
 
 async function loadAssets() {        
@@ -673,8 +663,8 @@ async function loadAssets() {
     var assetsUrl = res.data
     
     var assetsLoaded = 0
-    var assetsAll = 1 + assetsUrl.icons.length
-    assets.icons = Array(assetsAll)
+    var assetsAll = 1 + assetsUrl.symbols.length
+    assets.symbols = Array(assetsAll)
 
     await new Promise((Resolve, Reject) => {
         function eventAssetLoaded() {
@@ -690,11 +680,11 @@ async function loadAssets() {
             eventAssetLoaded()
         })
 
-        for (let index = 0; index < assetsUrl.icons.length; index++) {
-            const iconUrl = assetsUrl.icons[index]
+        for (let index = 0; index < assetsUrl.symbols.length; index++) {
+            const iconUrl = assetsUrl.symbols[index]
 
             fabric.Image.fromURL(iconUrl, function(img) {
-                assets.icons[index] = img.getElement()
+                assets.symbols[index] = img.getElement()
                 eventAssetLoaded()
             })
         }
