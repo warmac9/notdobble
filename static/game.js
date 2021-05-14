@@ -1,5 +1,4 @@
-const canvasSize = [800, 600]
-const cardSize = 320
+
 
 var deck
 var deckPos = [420, 50]
@@ -15,24 +14,18 @@ const deckAnimDuration = 10
 const discardAnimDuration = 100
 
 var pile
+const cardSize = 320
+
 const pilePos = [20, 260]
 const otherPilePos = [0, -cardSize]
 const otherPileDiscardOpacity = 0.25
-
 
 const cardLeftOffset = [
     deckPos[0]+cardSize-30, 
     deckPos[1]+cardSize-30
 ]
-var cardLeftEl
-var cardLeftNumEl
 
 var playerDisplayOffset = [60, 0]
-var playerDisplayEl
-var playerDisplayNameEl
-var playerDisplayStreakEl
-var playerDisplayStreakNumEl
-
 var playerLastDisplay
 var playerStreak
 
@@ -44,16 +37,6 @@ const playerSendNameTimeout = 500
 var socket
 var players
 var curPlayerId
-
-
-var playerStartScreenEl
-var playerEndScreenEl
-
-var playerNameInputEl
-var playerReadyInputEl
-var playerListEl
-var playerScoreEl
-var floatingTextEl
 
 
 function randomRange(from, to) {
@@ -182,7 +165,7 @@ function resizeImage(image, newWidth, newHeight) {
     image.scaleY =  newHeight / image.height
 }
 
-export function initImage(imageElement, options) {
+function initImage(imageElement, options) {
     const { resize, rotate, ...imgOptions } = options
     let imgInstance = new fabric.Image(imageElement, imgOptions)
 
@@ -463,6 +446,63 @@ async function onSymbolGlobalCorrect(playerId, symbolId) {
 //sceneManager.js
 //modifies html
 
+var canvasEl
+var cardLeftEl
+var cardLeftNumEl
+
+var playerDisplayEl
+var playerDisplayNameEl
+var playerDisplayStreakEl
+var playerDisplayStreakNumEl
+
+var playerStartScreenEl
+var playerEndScreenEl
+
+var playerNameInputEl
+var playerReadyInputEl
+var playerListEl
+var playerScoreEl
+var floatingTextEl
+
+
+function setPlayerList(players) {
+    delete players[curPlayerId]
+    playerListEl.innerHTML = ''
+
+    if(Object.keys(players).length == 0) {
+        let node = document.createElement('LI')
+        node.innerHTML = 'Nikto nie je pripojený :('
+        playerListEl.appendChild(node)
+        return
+    } 
+
+    for(const [playerId, player] of Object.entries(players)) {
+        const { name, ready, inGame } = player
+
+        let node = document.createElement('LI')
+        node.innerHTML = `<b>${name}</b>` 
+        if(ready)
+            node.innerHTML += ' je pripravený/á'
+        else if(inGame)
+            node.innerHTML += ' je práve v hre'
+        
+        playerListEl.appendChild(node)
+    }
+}
+
+function setPosTextEl() {
+    let canvasOffset = [
+        (window.innerWidth-canvasEl.width)/2,
+        (window.innerHeight-canvasEl.height)/2
+    ]
+
+    cardLeftEl.style.left = `${canvasOffset[0]+cardLeftOffset[0]}px`
+    cardLeftEl.style.top = `${canvasOffset[1]+cardLeftOffset[1]}px`
+    
+    playerDisplayEl.style.left = `${canvasOffset[0]+playerDisplayOffset[0]}px`
+    playerDisplayEl.style.top = `${canvasOffset[1]+playerDisplayOffset[1]}px`
+}
+
 async function onRoundStart(seed, playersData) {
     await wait(roundStartWait)
 
@@ -503,31 +543,6 @@ async function onRoundEnd() {
     await wait(100)
 }
 
-function setPlayerList(players) {
-    delete players[curPlayerId]
-    playerListEl.innerHTML = ''
-
-    if(Object.keys(players).length == 0) {
-        let node = document.createElement('LI')
-        node.innerHTML = 'Nikto nie je pripojený :('
-        playerListEl.appendChild(node)
-        return
-    } 
-
-    for(const [playerId, player] of Object.entries(players)) {
-        const { name, ready, inGame } = player
-
-        let node = document.createElement('LI')
-        node.innerHTML = `<b>${name}</b>` 
-        if(ready)
-            node.innerHTML += ' je pripravený/á'
-        else if(inGame)
-            node.innerHTML += ' je práve v hre'
-        
-        playerListEl.appendChild(node)
-    }
-}
-
 function onStartScreen() {
     playerEndScreenEl.classList.add('hide')
     playerStartScreenEl.classList.remove('hide')
@@ -564,20 +579,9 @@ async function onEndScreen(players) {
     }
 }
 
-function setPosTextEl() {
-    let canvasOffset = [
-        (window.innerWidth-canvasSize[0])/2,
-        (window.innerHeight-canvasSize[1])/2
-    ]
-
-    cardLeftEl.style.left = `${canvasOffset[0]+cardLeftOffset[0]}px`
-    cardLeftEl.style.top = `${canvasOffset[1]+cardLeftOffset[1]}px`
-    
-    playerDisplayEl.style.left = `${canvasOffset[0]+playerDisplayOffset[0]}px`
-    playerDisplayEl.style.top = `${canvasOffset[1]+playerDisplayOffset[1]}px`
-}
-
 function initElements() {
+    canvasEl = document.getElementsByClassName('game-canvas')[0]
+
     cardLeftNumEl = document.getElementsByClassName('card-left-num')[0]
     cardLeftEl = document.getElementsByClassName('card-left')[0]
 
