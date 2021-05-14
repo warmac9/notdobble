@@ -17,7 +17,8 @@ var players = {}
 var deckLastCount
 
 class Player {
-  constructor() {
+  constructor(id) {
+    this.id = id
     this.name = 'foo'
     this.ready = false
     this.inGame = false
@@ -51,7 +52,7 @@ function roundStart() {
   deckLastCount = undefined
 
   io.emit('player-list', players)
-  io.emit('round-start', Date.now(), players)
+  io.emit('round-start', Date.now())
 }
 
 
@@ -76,7 +77,7 @@ function roundEnd() {
 
 
 io.on('connection', (socket) => {
-  players[socket.id] = new Player()
+  players[socket.id] = new Player(socket.id)
   playersChanged()
 
 
@@ -93,7 +94,7 @@ io.on('connection', (socket) => {
     deckLastCount = deckCount
     
     players[socket.id].score++
-    io.emit('symbol-correct', socket.id, symbolId)
+    io.emit('symbol-correct', players[socket.id], symbolId)
 
     if(deckCount == 30) {
       roundEnd()

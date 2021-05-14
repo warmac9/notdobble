@@ -1,4 +1,5 @@
-
+import * as socketManager from './socketManager.js'
+import { curPlayerId } from './socketManager.js'
 
 function randomRange(from, to) {
     let rangeLenght = to - from
@@ -232,6 +233,7 @@ function onCanvasMouseDown(func) {
 
 
 //canvasAnimations.js
+//pass canvas from canvasManager
 
 class animHandle {
     constructor() {
@@ -339,7 +341,6 @@ function symbolsFadeAnimate(symbolImages, opacity, fadeDuration) {
 // -----> ss 
 
 //game.js
-//modifies html
 
 const deckPos = [420, 50]
 
@@ -372,9 +373,6 @@ const roundEndWait = 1000
 const endScreenWait = 1000
 
 
-var players
-var curPlayerId
-
 var playerLastDisplay
 var playerStreak
 
@@ -401,7 +399,79 @@ var playerListEl
 var playerScoreEl
 
 
-function setPlayerList(players) {
+function setPosTextEl() {
+    let canvasOffset = [
+        (window.innerWidth-canvasEl.width)/2,
+        (window.innerHeight-canvasEl.height)/2
+    ]
+
+    cardLeftEl.style.left = `${canvasOffset[0]+cardLeftOffset[0]}px`
+    cardLeftEl.style.top = `${canvasOffset[1]+cardLeftOffset[1]}px`
+    
+    playerDisplayEl.style.left = `${canvasOffset[0]+playerDisplayOffset[0]}px`
+    playerDisplayEl.style.top = `${canvasOffset[1]+playerDisplayOffset[1]}px`
+}
+
+async function discardCard(toMyPile=false) {
+    let topCard = await discardAnimate(deck.pop(), pile, (toMyPile ? pilePos : otherPilePos), toMyPile, discardAnimDuration, otherPileDiscardOpacity)
+
+    if(toMyPile)
+        pile = topCard
+    cardLeftNumEl.innerHTML = deck.length
+}
+
+function symbolBelongTopCard(event) {
+    return deck[deck.length - 1].cardImage == event.target.cardImage || pile.cardImage == event.target.cardImage
+}
+
+function onSymbolSelected(event) {
+    let symbolId = event?.target?.symbolId
+    if(symbolId == undefined ||
+        deckBlocked || 
+        !symbolBelongTopCard(event)) return
+
+    if(pile.symbols.includes(symbolId) && deck[deck.length-1].symbols.includes(symbolId)) {
+        socketManager.sendCorrectSymbol(symbolId, deck.length)
+        return
+    }
+
+    deckBlocked = true
+    symbolsFadeAnimate(deck[deck.length - 1].symbolImages, 0, symbolFadeDuration)
+
+    setTimeout(function() {
+        symbolsFadeAnimate(deck[deck.length - 1].symbolImages, 1, symbolFadeDuration)
+        deckBlocked = false
+    }, deckBlockedDuration)
+}
+
+//sceneManager.js
+//scenes
+
+function resetScene() {}
+
+export async function onSymbolGlobalCorrect(player, symbolId) {
+    if(playerLastDisplay == player.id) {
+        playerStreak++
+        playerDisplayStreakEl.classList.remove('hide')
+    } else {
+        playerStreak = 1
+        playerDisplayStreakEl.classList.add('hide')
+    }
+    console.log(player)
+    playerDisplayEl.classList.remove('fade-from-down')
+    playerLastDisplay = player.id
+    playerDisplayNameEl.innerHTML = player.name
+    playerDisplayStreakNumEl.innerHTML = playerStreak.toString()
+    
+    setTimeout(function() {
+        playerDisplayEl.classList.add('fade-from-down')
+    }, 150)
+
+    deckBlocked = false
+    discardCard((player.id == curPlayerId))
+}
+
+export function onPlayerListChange(players) {
     delete players[curPlayerId]
     playerListEl.innerHTML = ''
 
@@ -426,80 +496,9 @@ function setPlayerList(players) {
     }
 }
 
-function setPosTextEl() {
-    let canvasOffset = [
-        (window.innerWidth-canvasEl.width)/2,
-        (window.innerHeight-canvasEl.height)/2
-    ]
-
-    cardLeftEl.style.left = `${canvasOffset[0]+cardLeftOffset[0]}px`
-    cardLeftEl.style.top = `${canvasOffset[1]+cardLeftOffset[1]}px`
-    
-    playerDisplayEl.style.left = `${canvasOffset[0]+playerDisplayOffset[0]}px`
-    playerDisplayEl.style.top = `${canvasOffset[1]+playerDisplayOffset[1]}px`
-}
-
-async function discardCard(toMyPile=false) {
-    let topCard = await discardAnimate(deck.pop(), pile, (toMyPile ? pilePos : otherPilePos), toMyPile, discardAnimDuration, otherPileDiscardOpacity)
-
-    if(toMyPile)
-        pile = topCard
-    cardLeftNumEl.innerHTML = deck.length
-}
-
-
-async function onSymbolGlobalCorrect(playerId, symbolId) {
-    if(playerLastDisplay == playerId) {
-        playerStreak++
-        playerDisplayStreakEl.classList.remove('hide')
-    } else {
-        playerStreak = 1
-        playerDisplayStreakEl.classList.add('hide')
-    }
-
-    playerDisplayEl.classList.remove('fade-from-down')
-    playerLastDisplay = playerId
-    playerDisplayNameEl.innerHTML = players[playerId].name
-    playerDisplayStreakNumEl.innerHTML = playerStreak.toString()
-    
-    setTimeout(function() {
-        playerDisplayEl.classList.add('fade-from-down')
-    }, 150)
-
-    deckBlocked = false
-    discardCard((playerId == curPlayerId))
-}
-
-function symbolBelongTopCard(event) {
-    return deck[deck.length - 1].cardImage == event.target.cardImage || pile.cardImage == event.target.cardImage
-}
-
-function onSymbolSelected(event) {
-    let symbolId = event?.target?.symbolId
-    if(symbolId == undefined ||
-        deckBlocked || 
-        !symbolBelongTopCard(event)) return
-
-    if(pile.symbols.includes(symbolId) && deck[deck.length-1].symbols.includes(symbolId)) {
-        sendCorrectSymbol(symbolId, deck.length)
-        return
-    }
-
-    deckBlocked = true
-    symbolsFadeAnimate(deck[deck.length - 1].symbolImages, 0, symbolFadeDuration)
-
-    setTimeout(function() {
-        symbolsFadeAnimate(deck[deck.length - 1].symbolImages, 1, symbolFadeDuration)
-        deckBlocked = false
-    }, deckBlockedDuration)
-}
-
-function resetScene() {}
-
-async function onRoundStart(seed, playersData) {
+export async function onRoundStart(seed) {
     await wait(roundStartWait)
 
-    players = playersData
     playerStreak = 0
     playerLastDisplay = undefined
 
@@ -521,7 +520,7 @@ async function onRoundStart(seed, playersData) {
     discardCard(true)
 }
 
-async function onRoundEnd() {
+export async function onRoundEnd() {
     await wait(roundEndWait)
 
     deck.push(pile)
@@ -538,7 +537,7 @@ async function onRoundEnd() {
     await wait(100)
 }
 
-function onStartScreen() {
+export function onStartScreen() {
     playerEndScreenEl.classList.add('hide')
     playerStartScreenEl.classList.remove('hide')
     playerReadyInputEl.checked = false
@@ -546,15 +545,17 @@ function onStartScreen() {
     let sendNameTimeout
     playerNameInputEl.onkeyup = () => {
         clearTimeout(sendNameTimeout)
-        sendNameTimeout = setTimeout(sendName, playerSendNameTimeout)
+        sendNameTimeout = setTimeout(() => {
+            socketManager.sendName(playerNameInputEl.value)
+        }, playerSendNameTimeout)
     }
 
     playerReadyInputEl.onchange = () => {
-        sendReady(playerReadyInputEl.checked)
+        socketManager.sendReady(playerReadyInputEl.checked)
     }
 }
 
-async function onEndScreen(players) {
+export async function onEndScreen(players) {
     playerScoreEl.innerHTML = ''
     playerEndScreenEl.classList.remove('hide')
 
@@ -605,54 +606,54 @@ function initElements() {
 // -----> ss 
 
 //socketManager.js
-var socket
+// var socket
 
-function sendReady(ready) {
-    socket.emit('set-player', { ready: ready })
-}
+// function sendReady(ready) {
+//     socket.emit('set-player', { ready: ready })
+// }
 
-function sendName() {
-    if(playerNameInputEl.value == '') {
-        socket.emit('set-player', { name: 'foo' })
-        return
-    }
-    socket.emit('set-player', { name: playerNameInputEl.value })
-}
+// function sendName() {
+//     if(playerNameInputEl.value == '') {
+//         socket.emit('set-player', { name: 'foo' })
+//         return
+//     }
+//     socket.emit('set-player', { name: playerNameInputEl.value })
+// }
 
-function sendCorrectSymbol(symbolId, deckLength) {
-    socket.emit('symbol-selected', symbolId, deckLength)
-}
+// function sendCorrectSymbol(symbolId, deckLength) {
+//     socket.emit('symbol-selected', symbolId, deckLength)
+// }
 
-function onConnection() {
-    //INSTEAD PASS TO GAME MODULE
-    curPlayerId = socket.id
+// function onConnection() {
+//     //INSTEAD PASS TO GAME MODULE
+//     curPlayerId = socket.id
 
-    socket.on('round-start', (seed, players) => {
-        onRoundStart(seed, players)
-    })
+//     socket.on('round-start', (seed, players) => {
+//         onRoundStart(seed, players)
+//     })
 
-    socket.on('symbol-correct', (playerId, symbolId) => {
-        onSymbolGlobalCorrect(playerId)
-    })
+//     socket.on('symbol-correct', (playerId, symbolId) => {
+//         onSymbolGlobalCorrect(playerId)
+//     })
 
-    socket.on('player-list', (players) => {
-        setPlayerList(players)
-    })
+//     socket.on('player-list', (players) => {
+//         setPlayerList(players)
+//     })
 
-    socket.on('round-end', async (players) => {
-        await onRoundEnd()
-        onEndScreen(players)
-    })
+//     socket.on('round-end', async (players) => {
+//         await onRoundEnd()
+//         onEndScreen(players)
+//     })
 
-    onStartScreen()
-}
+//     onStartScreen()
+// }
 
-function initSocketConnection() {
-    socket = io()
-    socket.on('connect', () => {
-        onConnection()
-    })
-}
+// function initSocketConnection() {
+//     socket = io()
+//     socket.on('connect', () => {
+//         onConnection()
+//     })
+// }
 
 // -----> ss 
 
@@ -701,7 +702,7 @@ async function onPageLoaded() {
     onCanvasMouseDown(onSymbolSelected)
     await loadAssets()
 
-    initSocketConnection()
+    socketManager.initConnection()
 }
 
 document.addEventListener('DOMContentLoaded', onPageLoaded)
