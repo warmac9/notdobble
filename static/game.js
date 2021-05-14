@@ -341,10 +341,8 @@ function symbolsFadeAnimate(symbolImages, opacity, fadeDuration) {
 //game.js
 //modifies html
 
-var deck
-var deckPos = [420, 50]
+const deckPos = [420, 50]
 
-var deckBlocked = false
 const deckBlockedDuration = 1500
 const symbolFadeDuration = 200
 
@@ -354,7 +352,7 @@ const deckOffFreq = 5
 const deckAnimDuration = 10
 const discardAnimDuration = 100
 
-var pile
+
 const cardSize = 320
 
 const pilePos = [20, 260]
@@ -365,18 +363,24 @@ const cardLeftOffset = [
     deckPos[0]+cardSize-30, 
     deckPos[1]+cardSize-30
 ]
+const playerDisplayOffset = [60, 0]
 
-var playerDisplayOffset = [60, 0]
-var playerLastDisplay
-var playerStreak
 
+const playerSendNameTimeout = 500
 const roundStartWait = 700
 const roundEndWait = 1000
 const endScreenWait = 1000
 
-const playerSendNameTimeout = 500
+
 var players
 var curPlayerId
+
+var playerLastDisplay
+var playerStreak
+
+var deck
+var deckBlocked = false
+var pile
 
 
 var canvasEl
