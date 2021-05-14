@@ -95,7 +95,7 @@ io.on('connection', (socket) => {
     players[socket.id].score++
     io.emit('symbol-correct', socket.id, symbolId)
 
-    if(deckCount == 1) {
+    if(deckCount == 30) {
       roundEnd()
     }
   })

@@ -1,45 +1,3 @@
-var canvas
-var assets = {
-    card: null,
-    icons: []
-}
-
-
-const cardTemplate = [
-    {
-        offset: [125, 20],
-        size: [97, 97],
-        rot: 13,
-    },
-    {
-        offset: [215, 110],
-        size: [79, 79],
-        rot: 40,
-    },
-    {
-        offset: [120, 210],
-        size: [91, 91],
-        rot: 350,
-    },
-    {
-        offset: [55, 165],
-        size: [55, 55],
-        rot: 0,
-    },
-    {
-        offset: [37, 70],
-        size: [71, 71],
-        rot: 337,
-    },
-    {
-        offset: [125, 130],
-        size: [70, 70],
-        rot: 0,
-    },
-]
-const symbolsNum = 31
-const symbolsOffsets = [0, 1, 3, 10, 14, 26]
-
 const canvasSize = [800, 600]
 const cardSize = 320
 
@@ -87,6 +45,7 @@ var socket
 var players
 var curPlayerId
 
+
 var playerStartScreenEl
 var playerEndScreenEl
 
@@ -110,22 +69,7 @@ async function wait(millsec) {
     })
 }
 
-
-function Image(imageElement, options) {
-    const { resize, rotate, ...imgOptions } = options
-    let imgInstance = new fabric.Image(imageElement, imgOptions)
-
-    if(resize != undefined)
-        imgInstance.resize(...resize)
-
-    if(rotate != undefined)
-        imgInstance.rotate(rotate)
-
-    canvas.add(imgInstance)
-    return imgInstance
-}
-
-function viewTemplate(pos, symbolsId, cardTemplate) {
+function viewTemplate(canvas, pos, symbolsId, cardTemplate) {
     Image(assets.card, {
         left: pos[0],
         top: pos[1],
@@ -147,6 +91,205 @@ function viewTemplate(pos, symbolsId, cardTemplate) {
         canvas.add(rect)
     }
 }
+
+
+//deckGenerate.js
+
+const cardTemplate = [
+    {
+        offset: [125, 20],
+        size: [97, 97],
+        rot: 13,
+    },
+    {
+        offset: [215, 110],
+        size: [79, 79],
+        rot: 40,
+    },
+    {
+        offset: [120, 210],
+        size: [91, 91],
+        rot: 350,
+    },
+    {
+        offset: [55, 165],
+        size: [55, 55],
+        rot: 0,
+    },
+    {
+        offset: [37, 70],
+        size: [71, 71],
+        rot: 337,
+    },
+    {
+        offset: [125, 130],
+        size: [70, 70],
+        rot: 0,
+    },
+]
+const symbolsNum = 31
+const symbolsOffsets = [0, 1, 3, 10, 14, 26]
+
+
+function generateCards(symbolsNum, symbolsOffsets) {
+    let cards = Array(symbolsNum)
+    for (let index = 0; index < cards.length; index++) {
+        cards[index] = []
+    }
+
+    for(let symbolId = 0; symbolId < symbolsNum; symbolId++) {
+        symbolsOffsets.forEach(offset => {
+            cards[(symbolId+offset)%symbolsNum].push(symbolId)
+        })
+    }
+
+    return cards
+}
+
+function randomizeCards(seed, cardSymbols) {
+    let engine = Random.MersenneTwister19937.seed(seed)
+    let random = new Random.Random(engine);
+
+    random.shuffle(cardSymbols)
+    
+    for (let index = 0; index < cardSymbols.length; index++) {
+        cardSymbols[index] = random.shuffle(cardSymbols[index])
+    }
+
+    return cardSymbols
+}
+
+
+
+//canvasManager.js
+//dependant canvas
+
+var canvas
+
+function initCanvas() {
+    canvas = new fabric.Canvas('canvas', {
+        interactive: false,
+        selection: false
+    })
+    canvas.on('mouse:down', onCanvasMouseDown)
+    
+    fabric.Object.prototype.selectable = false
+    fabric.Object.prototype.hoverCursor = 'default'
+}
+
+function resizeImage(image, newWidth, newHeight) {
+    image.scaleX =  newWidth / image.width
+    image.scaleY =  newHeight / image.height
+}
+
+export function initImage(imageElement, options) {
+    const { resize, rotate, ...imgOptions } = options
+    let imgInstance = new fabric.Image(imageElement, imgOptions)
+
+    if(resize != undefined)
+        resizeImage(imgInstance, ...resize)
+
+    if(rotate != undefined)
+        imgInstance.rotate(rotate)
+
+    return imgInstance
+}
+
+function initCard(pos, symbolsId, cardTemplate, options=[], rotations) {
+    let images = []
+
+    let cardInstance = initImage(assets.card, {
+        left: pos[0],
+        top: pos[1],
+        ...options
+    })
+    images.push(cardInstance)
+    canvas.add(cardInstance)
+
+    for (let index = 0; index < cardTemplate.length; index++) {
+        const {offset, size, rot} = cardTemplate[index]
+        const symbol = symbolsId[index]
+
+        let rotation
+        if(rotations == undefined)
+            rotation = rot + randomRange(0, 4) * 90
+        else
+            rotation = rotations[index]
+
+        let symbolInstance = initImage(assets.icons[symbol], {
+            left: pos[0] + offset[0],
+            top: pos[1] + offset[1],
+            rotate: rotation,
+            resize: [...size],
+            symbolId: symbol,
+            cardImage: images[0],
+            ...options
+        })
+        images.push(symbolInstance)
+        canvas.add(symbolInstance)
+    }
+
+    return {
+        group: new fabric.Group(images, { left: pos[0], top: pos[1] }),
+        images: images,
+        cardImage: images[0],
+        iconImages: images.slice(1),
+        symbols: symbolsId
+    }
+}
+
+function initDeck(cardSymbols, deckPos, deckOffRange) {
+    let deck = []
+
+    for (let index = 0; index < cardSymbols.length; index++) {
+        var cardPos = [...deckPos]
+
+        if(index%deckOffFreq == 0) {
+            cardPos[0] += randomRange(...deckOffRange) * (-1 + randomRange(0, 1) * 2)
+            cardPos[1] += randomRange(...deckOffRange) * (-1 + randomRange(0, 1) * 2)
+        }
+
+        deck.push(
+            initCard(cardPos, cardSymbols[index], cardTemplate, { opacity: 0 })
+        )
+    }
+
+    return deck
+}
+
+function moveTopCardFront(topCard) {
+    let oldTopCard = topCard
+    let rotations = []
+
+    oldTopCard.iconImages.forEach(image => {
+        rotations.push(image.angle)
+    })
+    
+    topCard = initCard(
+        [oldTopCard.group.left, oldTopCard.group.top],
+        oldTopCard.symbols,
+        cardTemplate,
+        [],
+        rotations
+    )
+
+    oldTopCard.images.forEach(image => {
+        canvas.remove(image)
+    })
+
+    return topCard
+}
+
+function onCanvasMouseDown(event) {
+    let symbolId = event?.target?.symbolId
+    if(symbolId == undefined || deck[deck.length - 1].cardImage != event.target.cardImage && pile.cardImage != event.target.cardImage) return
+    
+    onSymbolSelected(symbolId)
+}
+
+
+
+//canvasAnimations.js
 
 class animHandle {
     constructor() {
@@ -183,142 +326,31 @@ async function animate(animated, animHandle=null) {
     })
 }
 
+async function deckAnimate(deck, deckAnimMillSpeed) {
+    let deckImages = []
+    for(const {images} of deck) {
+        deckImages.splice(0, 0, images)
+    }
 
-async function loadAssets() {        
-    var res = await axios.get('assets.json')
-    var assetsUrl = res.data
-    
-    var assetsLoaded = 0
-    var assetsAll = 1 + assetsUrl.icons.length
-    assets.icons = Array(assetsAll)
+    while(true) {
+        let cardImages = deckImages.pop()
+        cardLeftNumEl.innerHTML++
 
-    await new Promise((Resolve, Reject) => {
-        function eventAssetLoaded() {
-            assetsLoaded++
-        
-            if(assetsAll == assetsLoaded) {
-                Resolve()
-            }
+        if (cardImages == undefined)
+            return
+
+        for(let image of cardImages) {
+            image.set({ opacity: 1})
         }
 
-        fabric.Image.fromURL(assetsUrl.card, function(img) {
-            assets.card = img.getElement()
-            eventAssetLoaded()
-        })
-
-        for (let index = 0; index < assetsUrl.icons.length; index++) {
-            const iconUrl = assetsUrl.icons[index]
-
-            fabric.Image.fromURL(iconUrl, function(img) {
-                assets.icons[index] = img.getElement()
-                eventAssetLoaded()
-            })
-        }
-    })
-}
-
-function setPosTextEl() {
-    let canvasOffset = [
-        (window.innerWidth-canvasSize[0])/2,
-        (window.innerHeight-canvasSize[1])/2
-    ]
-
-    cardLeftEl.style.left = `${canvasOffset[0]+cardLeftOffset[0]}px`
-    cardLeftEl.style.top = `${canvasOffset[1]+cardLeftOffset[1]}px`
-    
-    playerDisplayEl.style.left = `${canvasOffset[0]+playerDisplayOffset[0]}px`
-    playerDisplayEl.style.top = `${canvasOffset[1]+playerDisplayOffset[1]}px`
-}
-
-function initElements() {
-    cardLeftNumEl = document.getElementsByClassName('card-left-num')[0]
-    cardLeftEl = document.getElementsByClassName('card-left')[0]
-
-    playerDisplayEl = document.getElementsByClassName('player-display')[0]
-    playerDisplayNameEl = document.getElementsByClassName('player-display-name')[0]
-    playerDisplayStreakEl = document.getElementsByClassName('player-display-streak')[0]
-    playerDisplayStreakNumEl = document.getElementsByClassName('player-display-streak-num')[0]
-    setPosTextEl()
-    window.addEventListener('resize', setPosTextEl)
-
-    playerStartScreenEl = document.getElementsByClassName('player-start-screen')[0]
-    playerEndScreenEl = document.getElementsByClassName('player-end-screen')[0]
-
-    playerNameInputEl = document.getElementsByClassName('player-name-input')[0]
-    playerReadyInputEl = document.getElementsByClassName('player-ready-input')[0]
-    playerListEl = document.getElementsByClassName('player-list')[0]
-    playerScoreEl = document.getElementsByClassName('player-score')[0]
-    floatingTextEl = document.getElementsByClassName('floating-text')[0]
-}
-
-function initCanvas() {
-    canvas = new fabric.Canvas('canvas', {
-        interactive: false,
-        selection: false
-    })
-    canvas.on('mouse:down', onCanvasMouseDown)
-    
-    fabric.Object.prototype.selectable = false
-    fabric.Object.prototype.hoverCursor = 'default'
-    
-    fabric.Image.prototype.resize = function(newWidth, newHeight) {
-        this.scaleX =  newWidth / this.width
-        this.scaleY =  newHeight / this.height
+        canvas.renderAll()
+        await wait(10)
     }
 }
 
-async function onPageLoaded() {
-    initElements()
-    initCanvas()
-    await loadAssets()
-
-    document.addEventListener('mousemove', event => {
-        floatingTextEl.style.transform = `translate(
-            ${Math.min(event.clientX + 30, window.innerWidth - 250)}px,
-            ${Math.min(event.clientY + 10, window.innerHeight - 60)}px
-        )`
-    })
-
-    socket = io()
-    socket.on('connect', () => {
-        onConnection()
-    })
-}
-
-
-async function discardCard(toPile=false) {
+async function discardAnimate(topCard, cardEndPos) {
     let animateArgs = []
-    let oldTopCard
-    let topCard = deck.pop()
-    if(topCard == undefined) return
 
-    cardLeftNumEl.innerHTML = deck.length
-    oldTopCard = topCard
-
-    let cardEndPos
-    if(toPile) {
-        cardEndPos = pilePos
-    } else {
-        cardEndPos = otherPilePos
-    }
-
-    let rotations = []
-    oldTopCard.iconImages.forEach(image => {
-        rotations.push(image.angle)
-    })
-
-    topCard = cardInit(
-        [oldTopCard.group.left, oldTopCard.group.top],
-        oldTopCard.symbols,
-        cardTemplate,
-        [],
-        rotations
-    )
-
-    oldTopCard.images.forEach(image => {
-        canvas.remove(image)
-    })
-    
     animateArgs.push({
         obj: topCard.group,
         attr: 'left',
@@ -331,42 +363,11 @@ async function discardCard(toPile=false) {
         endValue: cardEndPos[1],
         duration: discardAnimDuration
     })
-    if(!toPile)
-        topCard.group.set({ opacity: otherPileDiscardOpacity })
 
     await animate(animateArgs)
-    if(!toPile) return
-    
-    if(pile != undefined)
-        pile.images.forEach(image => {
-            canvas.remove(image)
-        })
-    pile = topCard
 }
 
-async function onSymbolGlobalCorrect(playerId, symbolId) {
-    if(playerLastDisplay == playerId) {
-        playerStreak++
-        playerDisplayStreakEl.classList.remove('hide')
-    } else {
-        playerStreak = 1
-        playerDisplayStreakEl.classList.add('hide')
-    }
-
-    playerDisplayEl.classList.remove('fade-from-down')
-    playerLastDisplay = playerId
-    playerDisplayNameEl.innerHTML = players[playerId].name
-    playerDisplayStreakNumEl.innerHTML = playerStreak.toString()
-    
-    setTimeout(function() {
-        playerDisplayEl.classList.add('fade-from-down')
-    }, 150)
-
-    deckBlocked = false
-    discardCard((playerId == curPlayerId))
-}
-
-function onSymbolWrong() {
+function cardHideAnimate() {
     let animateArgs = []
     deckBlocked = true
 
@@ -399,6 +400,11 @@ function onSymbolWrong() {
     }, deckBlockedDuration)
 }
 
+
+
+//events gameEventManager 
+//deck vars dependant
+
 function onSymbolSelected(symbolId) {
     if(deckBlocked) return
 
@@ -407,127 +413,55 @@ function onSymbolSelected(symbolId) {
         return
     }
 
-    onSymbolWrong()
+    cardHideAnimate()
 }
 
-function onCanvasMouseDown(event) {
-    let symbolId = event?.target?.symbolId
-    if(symbolId == undefined || deck[deck.length - 1].cardImage != event.target.cardImage && pile.cardImage != event.target.cardImage) return
+async function discardCard(toMyPile=false) {
+    let topCard = deck.pop()
+    if(topCard == undefined) return
+    topCard = moveTopCardFront(topCard)
     
-    onSymbolSelected(symbolId)
-}
-
-
-function cardInit(pos, symbolsId, cardTemplate, options=[], rotations) {
-    let images = []
-
-    images.push(Image(assets.card, {
-        left: pos[0],
-        top: pos[1],
-        ...options
-    }))
-
-    for (let index = 0; index < cardTemplate.length; index++) {
-        const {offset, size, rot} = cardTemplate[index]
-        const symbol = symbolsId[index]
-
-        let rotation
-        if(rotations == undefined)
-            rotation = rot + randomRange(0, 4) * 90
-        else
-            rotation = rotations[index]
-
-        images.push(
-            Image(assets.icons[symbol], {
-                left: pos[0] + offset[0],
-                top: pos[1] + offset[1],
-                rotate: rotation,
-                resize: [...size],
-                symbolId: symbol,
-                cardImage: images[0],
-                ...options
-            }
-        ))
-    }
-
-    return {
-        group: new fabric.Group(images, { left: pos[0], top: pos[1] }),
-        images: images,
-        cardImage: images[0],
-        iconImages: images.slice(1),
-        symbols: symbolsId
-    }
-}
-
-function deckInit(cardSymbols, deckPos, deckOffRange) {
-    let deck = []
-
-    for (let index = 0; index < cardSymbols.length; index++) {
-        var cardPos = [...deckPos]
-
-        if(index%deckOffFreq == 0) {
-            cardPos[0] += randomRange(...deckOffRange) * (-1 + randomRange(0, 1) * 2)
-            cardPos[1] += randomRange(...deckOffRange) * (-1 + randomRange(0, 1) * 2)
-        }
-
-        deck.push(
-            cardInit(cardPos, cardSymbols[index], cardTemplate, { opacity: 0 })
-        )
-    }
-
-    return deck
-}
-
-
-async function deckAnimate(deck, deckAnimMillSpeed) {
-    let deckImages = []
-    for(const {images} of deck) {
-        deckImages.splice(0, 0, images)
-    }
-
-    while(true) {
-        let cardImages = deckImages.pop()
-        cardLeftNumEl.innerHTML++
-
-        if (cardImages == undefined)
-            return
-
-        for(let image of cardImages) {
-            image.set({ opacity: 1})
-        }
-
-        canvas.renderAll()
-        await wait(10)
-    }
-}
-
-function generateCards(symbolsNum, symbolsOffsets) {
-    let cards = Array(symbolsNum)
-    for (let index = 0; index < cards.length; index++) {
-        cards[index] = []
-    }
-
-    for(let symbolId = 0; symbolId < symbolsNum; symbolId++) {
-        symbolsOffsets.forEach(offset => {
-            cards[(symbolId+offset)%symbolsNum].push(symbolId)
+    if(!toMyPile)
+        topCard.group.set({ opacity: otherPileDiscardOpacity })
+    await discardAnimate(topCard, (toMyPile ? pilePos : otherPilePos))
+    
+    if(!toMyPile) return
+    
+    if(pile != undefined)
+        pile.images.forEach(image => {
+            canvas.remove(image)
         })
-    }
+    pile = topCard
 
-    return cards
+    cardLeftNumEl.innerHTML = deck.length
 }
 
-function randomizeCards(seed, cardSymbols) {
-    let engine = Random.MersenneTwister19937.seed(seed)
-    let random = new Random.Random(engine);
+async function onSymbolGlobalCorrect(playerId, symbolId) {
+    if(playerLastDisplay == playerId) {
+        playerStreak++
+        playerDisplayStreakEl.classList.remove('hide')
+    } else {
+        playerStreak = 1
+        playerDisplayStreakEl.classList.add('hide')
+    }
 
-    random.shuffle(cardSymbols)
+    playerDisplayEl.classList.remove('fade-from-down')
+    playerLastDisplay = playerId
+    playerDisplayNameEl.innerHTML = players[playerId].name
+    playerDisplayStreakNumEl.innerHTML = playerStreak.toString()
     
-    for (let index = 0; index < cardSymbols.length; index++) {
-        cardSymbols[index] = random.shuffle(cardSymbols[index])
-    }
+    setTimeout(function() {
+        playerDisplayEl.classList.add('fade-from-down')
+    }, 150)
 
-    return cardSymbols
+    deckBlocked = false
+    discardCard((playerId == curPlayerId))
 }
+
+
+
+//sceneManager.js
+//modifies html
 
 async function onRoundStart(seed, playersData) {
     await wait(roundStartWait)
@@ -541,7 +475,7 @@ async function onRoundStart(seed, playersData) {
     playerReadyInputEl.onchange = () => {}
     floatingTextEl.classList.add('hide')
     
-    deck = deckInit(
+    deck = initDeck(
         randomizeCards(seed, generateCards(symbolsNum, symbolsOffsets)), 
         deckPos, 
         deckOffRange
@@ -567,19 +501,6 @@ async function onRoundEnd() {
     playerDisplayEl.classList.remove('fade-from-down')
 
     await wait(100)
-}
-
-
-function sendName() {
-    if(playerNameInputEl.value == '') {
-        socket.emit('set-player', { name: 'foo' })
-        return
-    }
-    socket.emit('set-player', { name: playerNameInputEl.value })
-}
-
-function sendCorrectSymbol(symbolId) {
-    socket.emit('symbol-selected', symbolId, deck.length)
 }
 
 function setPlayerList(players) {
@@ -620,7 +541,7 @@ function onStartScreen() {
     }
 
     playerReadyInputEl.onchange = () => {
-        socket.emit('set-player', { ready: playerReadyInputEl.checked })
+        sendReady(playerReadyInputEl.checked)
     }
 }
 
@@ -641,6 +562,60 @@ async function onEndScreen(players) {
         onStartScreen()
         document.onclick = () => {}
     }
+}
+
+function setPosTextEl() {
+    let canvasOffset = [
+        (window.innerWidth-canvasSize[0])/2,
+        (window.innerHeight-canvasSize[1])/2
+    ]
+
+    cardLeftEl.style.left = `${canvasOffset[0]+cardLeftOffset[0]}px`
+    cardLeftEl.style.top = `${canvasOffset[1]+cardLeftOffset[1]}px`
+    
+    playerDisplayEl.style.left = `${canvasOffset[0]+playerDisplayOffset[0]}px`
+    playerDisplayEl.style.top = `${canvasOffset[1]+playerDisplayOffset[1]}px`
+}
+
+function initElements() {
+    cardLeftNumEl = document.getElementsByClassName('card-left-num')[0]
+    cardLeftEl = document.getElementsByClassName('card-left')[0]
+
+    playerDisplayEl = document.getElementsByClassName('player-display')[0]
+    playerDisplayNameEl = document.getElementsByClassName('player-display-name')[0]
+    playerDisplayStreakEl = document.getElementsByClassName('player-display-streak')[0]
+    playerDisplayStreakNumEl = document.getElementsByClassName('player-display-streak-num')[0]
+    setPosTextEl()
+    window.addEventListener('resize', setPosTextEl)
+
+    playerStartScreenEl = document.getElementsByClassName('player-start-screen')[0]
+    playerEndScreenEl = document.getElementsByClassName('player-end-screen')[0]
+
+    playerNameInputEl = document.getElementsByClassName('player-name-input')[0]
+    playerReadyInputEl = document.getElementsByClassName('player-ready-input')[0]
+    playerListEl = document.getElementsByClassName('player-list')[0]
+    playerScoreEl = document.getElementsByClassName('player-score')[0]
+    floatingTextEl = document.getElementsByClassName('floating-text')[0]
+}
+
+
+
+//socketManager.js
+
+function sendReady(ready) {
+    socket.emit('set-player', { ready: ready })
+}
+
+function sendName() {
+    if(playerNameInputEl.value == '') {
+        socket.emit('set-player', { name: 'foo' })
+        return
+    }
+    socket.emit('set-player', { name: playerNameInputEl.value })
+}
+
+function sendCorrectSymbol(symbolId) {
+    socket.emit('symbol-selected', symbolId, deck.length)
 }
 
 function onConnection() {
@@ -665,6 +640,69 @@ function onConnection() {
     })
 
     onStartScreen()
+}
+
+function initSocketConnection() {
+    socket = io()
+    socket.on('connect', () => {
+        onConnection()
+    })
+}
+
+
+
+//gameLoad.js
+var assets = {
+    card: null,
+    icons: []
+}
+
+async function loadAssets() {        
+    var res = await axios.get('assets.json')
+    var assetsUrl = res.data
+    
+    var assetsLoaded = 0
+    var assetsAll = 1 + assetsUrl.icons.length
+    assets.icons = Array(assetsAll)
+
+    await new Promise((Resolve, Reject) => {
+        function eventAssetLoaded() {
+            assetsLoaded++
+        
+            if(assetsAll == assetsLoaded) {
+                Resolve()
+            }
+        }
+
+        fabric.Image.fromURL(assetsUrl.card, function(img) {
+            assets.card = img.getElement()
+            eventAssetLoaded()
+        })
+
+        for (let index = 0; index < assetsUrl.icons.length; index++) {
+            const iconUrl = assetsUrl.icons[index]
+
+            fabric.Image.fromURL(iconUrl, function(img) {
+                assets.icons[index] = img.getElement()
+                eventAssetLoaded()
+            })
+        }
+    })
+}
+
+async function onPageLoaded() {
+    initElements()
+    initCanvas()
+    await loadAssets()
+
+    document.addEventListener('mousemove', event => {
+        floatingTextEl.style.transform = `translate(
+            ${Math.min(event.clientX + 30, window.innerWidth - 250)}px,
+            ${Math.min(event.clientY + 10, window.innerHeight - 60)}px
+        )`
+    })
+
+    initSocketConnection()
 }
 
 document.addEventListener('DOMContentLoaded', onPageLoaded)
