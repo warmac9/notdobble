@@ -154,7 +154,6 @@ function initCanvas() {
         interactive: false,
         selection: false
     })
-    canvas.on('mouse:down', onCanvasMouseDown)
     
     fabric.Object.prototype.selectable = false
     fabric.Object.prototype.hoverCursor = 'default'
@@ -263,11 +262,8 @@ function moveTopCardFront(topCard) {
     return topCard
 }
 
-function onCanvasMouseDown(event) {
-    let symbolId = event?.target?.symbolId
-    if(symbolId == undefined || deck[deck.length - 1].cardImage != event.target.cardImage && pile.cardImage != event.target.cardImage) return
-    
-    onSymbolSelected(symbolId)
+function onCanvasMouseDown(func) {
+    canvas.on('mouse:down', func)
 }
 
 
@@ -331,8 +327,13 @@ async function deckAnimate(deck, deckAnimMillSpeed) {
     }
 }
 
-async function discardAnimate(topCard, cardEndPos) {
+async function discardAnimate(topCard, pileCard, toMyPile) {
+    if(topCard == undefined) return
+
     let animateArgs = []
+    let cardEndPos = toMyPile ? pilePos : otherPilePos
+
+    topCard = moveTopCardFront(topCard)
 
     animateArgs.push({
         obj: topCard.group,
@@ -347,7 +348,17 @@ async function discardAnimate(topCard, cardEndPos) {
         duration: discardAnimDuration
     })
 
+    if(!toMyPile)
+        topCard.group.set({ opacity: otherPileDiscardOpacity })
+
     await animate(animateArgs)
+
+    if(pileCard != undefined)
+        pile.images.forEach(image => {
+            canvas.remove(image)
+        })
+
+    return topCard
 }
 
 function cardHideAnimate() {
@@ -385,64 +396,6 @@ function cardHideAnimate() {
 
 
 
-//events gameEventManager 
-//deck vars dependant
-
-function onSymbolSelected(symbolId) {
-    if(deckBlocked) return
-
-    if(pile.symbols.includes(symbolId) && deck[deck.length-1].symbols.includes(symbolId)) {
-        sendCorrectSymbol(symbolId)
-        return
-    }
-
-    cardHideAnimate()
-}
-
-async function discardCard(toMyPile=false) {
-    let topCard = deck.pop()
-    if(topCard == undefined) return
-    topCard = moveTopCardFront(topCard)
-    
-    if(!toMyPile)
-        topCard.group.set({ opacity: otherPileDiscardOpacity })
-    await discardAnimate(topCard, (toMyPile ? pilePos : otherPilePos))
-    
-    if(!toMyPile) return
-    
-    if(pile != undefined)
-        pile.images.forEach(image => {
-            canvas.remove(image)
-        })
-    pile = topCard
-
-    cardLeftNumEl.innerHTML = deck.length
-}
-
-async function onSymbolGlobalCorrect(playerId, symbolId) {
-    if(playerLastDisplay == playerId) {
-        playerStreak++
-        playerDisplayStreakEl.classList.remove('hide')
-    } else {
-        playerStreak = 1
-        playerDisplayStreakEl.classList.add('hide')
-    }
-
-    playerDisplayEl.classList.remove('fade-from-down')
-    playerLastDisplay = playerId
-    playerDisplayNameEl.innerHTML = players[playerId].name
-    playerDisplayStreakNumEl.innerHTML = playerStreak.toString()
-    
-    setTimeout(function() {
-        playerDisplayEl.classList.add('fade-from-down')
-    }, 150)
-
-    deckBlocked = false
-    discardCard((playerId == curPlayerId))
-}
-
-
-
 //sceneManager.js
 //modifies html
 
@@ -462,7 +415,6 @@ var playerNameInputEl
 var playerReadyInputEl
 var playerListEl
 var playerScoreEl
-var floatingTextEl
 
 
 function setPlayerList(players) {
@@ -503,6 +455,57 @@ function setPosTextEl() {
     playerDisplayEl.style.top = `${canvasOffset[1]+playerDisplayOffset[1]}px`
 }
 
+async function discardCard(toMyPile=false) {
+    let topCard = await discardAnimate(deck.pop(), pile, toMyPile)
+
+    if(toMyPile)
+        pile = topCard
+    cardLeftNumEl.innerHTML = deck.length
+}
+
+
+async function onSymbolGlobalCorrect(playerId, symbolId) {
+    if(playerLastDisplay == playerId) {
+        playerStreak++
+        playerDisplayStreakEl.classList.remove('hide')
+    } else {
+        playerStreak = 1
+        playerDisplayStreakEl.classList.add('hide')
+    }
+
+    playerDisplayEl.classList.remove('fade-from-down')
+    playerLastDisplay = playerId
+    playerDisplayNameEl.innerHTML = players[playerId].name
+    playerDisplayStreakNumEl.innerHTML = playerStreak.toString()
+    
+    setTimeout(function() {
+        playerDisplayEl.classList.add('fade-from-down')
+    }, 150)
+
+    deckBlocked = false
+    discardCard((playerId == curPlayerId))
+}
+
+function symbolBelongTopCard(event) {
+    return deck[deck.length - 1].cardImage == event.target.cardImage || pile.cardImage == event.target.cardImage
+}
+
+function onSymbolSelected(event) {
+    let symbolId = event?.target?.symbolId
+    if(symbolId == undefined ||
+        deckBlocked || 
+        !symbolBelongTopCard(event)) return
+
+    if(pile.symbols.includes(symbolId) && deck[deck.length-1].symbols.includes(symbolId)) {
+        sendCorrectSymbol(symbolId)
+        return
+    }
+
+    cardHideAnimate()
+}
+
+function resetScene() {}
+
 async function onRoundStart(seed, playersData) {
     await wait(roundStartWait)
 
@@ -513,7 +516,6 @@ async function onRoundStart(seed, playersData) {
     playerStartScreenEl.classList.add('hide')
     playerNameInputEl.onkeyup = () => {}
     playerReadyInputEl.onchange = () => {}
-    floatingTextEl.classList.add('hide')
     
     deck = initDeck(
         randomizeCards(seed, generateCards(symbolsNum, symbolsOffsets)), 
@@ -547,7 +549,6 @@ function onStartScreen() {
     playerEndScreenEl.classList.add('hide')
     playerStartScreenEl.classList.remove('hide')
     playerReadyInputEl.checked = false
-    floatingTextEl.classList.remove('hide')
     
     let sendNameTimeout
     playerNameInputEl.onkeyup = () => {
@@ -599,8 +600,14 @@ function initElements() {
     playerReadyInputEl = document.getElementsByClassName('player-ready-input')[0]
     playerListEl = document.getElementsByClassName('player-list')[0]
     playerScoreEl = document.getElementsByClassName('player-score')[0]
-    floatingTextEl = document.getElementsByClassName('floating-text')[0]
 }
+
+// document.addEventListener('mousemove', event => {
+//     floatingTextEl.style.transform = `translate(
+//         ${Math.min(event.clientX + 30, window.innerWidth - 250)}px,
+//         ${Math.min(event.clientY + 10, window.innerHeight - 60)}px
+//     )`
+// })
 
 
 
@@ -697,14 +704,8 @@ async function loadAssets() {
 async function onPageLoaded() {
     initElements()
     initCanvas()
+    onCanvasMouseDown(onSymbolSelected)
     await loadAssets()
-
-    document.addEventListener('mousemove', event => {
-        floatingTextEl.style.transform = `translate(
-            ${Math.min(event.clientX + 30, window.innerWidth - 250)}px,
-            ${Math.min(event.clientY + 10, window.innerHeight - 60)}px
-        )`
-    })
 
     initSocketConnection()
 }
