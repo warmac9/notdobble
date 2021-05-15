@@ -1,7 +1,8 @@
-import * as game from './game.js'
+import * as game from '../game.js'
 
 var socket
 export var curPlayerId
+
 
 export function sendReady(ready) {
     socket.emit('set-player', { ready: ready })
