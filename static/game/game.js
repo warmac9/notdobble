@@ -1,4 +1,4 @@
-import { randomRange, wait } from './utils/utilFunc.js'
+import { byClass, wait } from './utils/utilFunc.js'
 import { generateCards, randomizeCards } from './utils/deckGenerator.js'
 
 import * as canvas from './canvas/canvasManager.js'
@@ -81,35 +81,17 @@ var deckBlocked = false
 var pile
 
 
-var canvasEl
-var cardLeftEl
-var cardLeftNumEl
-
-var playerDisplayEl
-var playerDisplayNameEl
-var playerDisplayStreakEl
-var playerDisplayStreakNumEl
-
-var playerStartScreenEl
-var playerEndScreenEl
-
-var playerNameInputEl
-var playerReadyInputEl
-var playerListEl
-var playerScoreEl
-
-
 function setPosTextEl() {
     let canvasOffset = [
-        (window.innerWidth-canvasEl.width)/2,
-        (window.innerHeight-canvasEl.height)/2
+        (window.innerWidth-byClass('game-canvas').width)/2,
+        (window.innerHeight-byClass('game-canvas').height)/2
     ]
 
-    cardLeftEl.style.left = `${canvasOffset[0]+cardLeftOffset[0]}px`
-    cardLeftEl.style.top = `${canvasOffset[1]+cardLeftOffset[1]}px`
+    byClass('card-left').style.left = `${canvasOffset[0]+cardLeftOffset[0]}px`
+    byClass('card-left').style.top = `${canvasOffset[1]+cardLeftOffset[1]}px`
     
-    playerDisplayEl.style.left = `${canvasOffset[0]+playerDisplayOffset[0]}px`
-    playerDisplayEl.style.top = `${canvasOffset[1]+playerDisplayOffset[1]}px`
+    byClass('player-display').style.left = `${canvasOffset[0]+playerDisplayOffset[0]}px`
+    byClass('player-display').style.top = `${canvasOffset[1]+playerDisplayOffset[1]}px`
 }
 
 async function discardCard(toMyPile=false) {
@@ -120,7 +102,7 @@ async function discardCard(toMyPile=false) {
 
     if(toMyPile)
         pile = topCard
-    cardLeftNumEl.innerHTML = deck.length
+    byClass('card-left-num').innerHTML = deck.length
 }
 
 function symbolBelongTopCard(event) {
@@ -147,27 +129,26 @@ function onSymbolSelected(event) {
     }, deckBlockedDuration)
 }
 
-//sceneManager.js
-//scenes
 
 function resetScene() {}
+
 
 export async function onSymbolGlobalCorrect(player, symbolId) {
     if(playerLastDisplay == player.id) {
         playerStreak++
-        playerDisplayStreakEl.classList.remove('hide')
+        byClass('player-display-streak').classList.remove('hide')
     } else {
         playerStreak = 1
-        playerDisplayStreakEl.classList.add('hide')
+        byClass('player-display-streak').classList.add('hide')
     }
-    console.log(player)
-    playerDisplayEl.classList.remove('fade-from-down')
+
+    byClass('player-display').classList.remove('fade-from-down')
     playerLastDisplay = player.id
-    playerDisplayNameEl.innerHTML = player.name
-    playerDisplayStreakNumEl.innerHTML = playerStreak.toString()
+    byClass('player-display-name').innerHTML = player.name
+    byClass('player-display-streak-num').innerHTML = playerStreak.toString()
     
     setTimeout(function() {
-        playerDisplayEl.classList.add('fade-from-down')
+        byClass('player-display').classList.add('fade-from-down')
     }, 150)
 
     deckBlocked = false
@@ -176,12 +157,12 @@ export async function onSymbolGlobalCorrect(player, symbolId) {
 
 export function onPlayerListChange(players) {
     delete players[curPlayerId]
-    playerListEl.innerHTML = ''
+    byClass('player-list').innerHTML = ''
 
     if(Object.keys(players).length == 0) {
         let node = document.createElement('LI')
         node.innerHTML = 'Nikto nie je pripojený :('
-        playerListEl.appendChild(node)
+        byClass('player-list').appendChild(node)
         return
     } 
 
@@ -195,7 +176,7 @@ export function onPlayerListChange(players) {
         else if(inGame)
             node.innerHTML += ' je práve v hre'
         
-        playerListEl.appendChild(node)
+        byClass('player-list').appendChild(node)
     }
 }
 
@@ -205,9 +186,9 @@ export async function onRoundStart(seed) {
     playerStreak = 0
     playerLastDisplay = undefined
 
-    playerStartScreenEl.classList.add('hide')
-    playerNameInputEl.onkeyup = () => {}
-    playerReadyInputEl.onchange = () => {}
+    byClass('player-start-screen').classList.add('hide')
+    byClass('player-name-input').onkeyup = () => {}
+    byClass('player-ready-input').onchange = () => {}
     
     deck = canvas.initDeck(
         cardTemplate,
@@ -217,15 +198,15 @@ export async function onRoundStart(seed) {
         deckOffFreq
     )
     
-    cardLeftNumEl.innerHTML = 0
-    cardLeftEl.classList.remove('hide')
+    byClass('card-left-num').innerHTML = 0
+    byClass('card-left').classList.remove('hide')
 
     let deckAnimateGenerator = canvas.deckAnimate(deck, deckAnimDuration)
     while(true) {
         let endAnimate = deckAnimateGenerator.next().value
         if(endAnimate) break
 
-        cardLeftNumEl.innerHTML++
+        byClass('card-left-num').innerHTML++
         await wait(deckAnimDuration)
     }
 
@@ -242,72 +223,50 @@ export async function onRoundEnd() {
         })
     })
     
-    cardLeftEl.classList.add('hide')
-    playerDisplayEl.classList.add('hide')
-    playerDisplayEl.classList.remove('fade-from-down')
+    byClass('card-left').classList.add('hide')
+    byClass('player-display').classList.add('hide')
+    byClass('player-display').classList.remove('fade-from-down')
 
     await wait(100)
 }
 
 export function onStartScreen() {
-    playerEndScreenEl.classList.add('hide')
-    playerStartScreenEl.classList.remove('hide')
-    playerReadyInputEl.checked = false
+    byClass('player-end-screen').classList.add('hide')
+    byClass('player-start-screen').classList.remove('hide')
+    byClass('player-ready-input').checked = false
     
     let sendNameTimeout
-    playerNameInputEl.onkeyup = () => {
+    byClass('player-name-input').onkeyup = () => {
         clearTimeout(sendNameTimeout)
         sendNameTimeout = setTimeout(() => {
-            socketManager.sendName(playerNameInputEl.value)
+            socketManager.sendName(byClass('player-name-input').value)
         }, playerSendNameTimeout)
     }
 
-    playerReadyInputEl.onchange = () => {
-        socketManager.sendReady(playerReadyInputEl.checked)
+    byClass('player-ready-input').onchange = () => {
+        socketManager.sendReady(byClass('player-ready-input').checked)
     }
 
     socketManager.sendReady(true)
 }
 
 export async function onEndScreen(players) {
-    playerScoreEl.innerHTML = ''
-    playerEndScreenEl.classList.remove('hide')
+    byClass('player-score').innerHTML = ''
+    byClass('player-end-screen').classList.remove('hide')
 
     for(const [name, score] of players) {
         let node = document.createElement('TR')
         node.innerHTML = `<td>${name}</td><td>${score}</td>`
-        playerScoreEl.appendChild(node)
+        byClass('player-score').appendChild(node)
     }
 
     await wait(endScreenWait)
     document.onclick = (event) => {
-        if(playerEndScreenEl.contains(event.target)) return
+        if(byClass('player-end-screen').contains(event.target)) return
 
         onStartScreen()
         document.onclick = () => {}
     }
-}
-
-function initElements() {
-    canvasEl = document.getElementsByClassName('game-canvas')[0]
-
-    cardLeftNumEl = document.getElementsByClassName('card-left-num')[0]
-    cardLeftEl = document.getElementsByClassName('card-left')[0]
-
-    playerDisplayEl = document.getElementsByClassName('player-display')[0]
-    playerDisplayNameEl = document.getElementsByClassName('player-display-name')[0]
-    playerDisplayStreakEl = document.getElementsByClassName('player-display-streak')[0]
-    playerDisplayStreakNumEl = document.getElementsByClassName('player-display-streak-num')[0]
-    setPosTextEl()
-    window.addEventListener('resize', setPosTextEl)
-
-    playerStartScreenEl = document.getElementsByClassName('player-start-screen')[0]
-    playerEndScreenEl = document.getElementsByClassName('player-end-screen')[0]
-
-    playerNameInputEl = document.getElementsByClassName('player-name-input')[0]
-    playerReadyInputEl = document.getElementsByClassName('player-ready-input')[0]
-    playerListEl = document.getElementsByClassName('player-list')[0]
-    playerScoreEl = document.getElementsByClassName('player-score')[0]
 }
 
 // document.addEventListener('mousemove', event => {
@@ -317,8 +276,6 @@ function initElements() {
 //     )`
 // })
 
-
-// -----> ss 
 
 //gameLoad.js
 var assets = {
@@ -363,8 +320,7 @@ async function loadAssets() {
 }
 
 async function onPageLoaded() {
-    initElements()
-
+    setPosTextEl()
     canvas.passAssets(await loadAssets())
     canvas.initCanvas()
     canvas.onMouseDown(onSymbolSelected)

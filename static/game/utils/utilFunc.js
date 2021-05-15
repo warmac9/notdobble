@@ -1,4 +1,10 @@
 
+
+export function byClass(className) {
+    return document.getElementsByClassName(className)[0]
+}
+
+
 export function randomRange(from, to) {
     let rangeLenght = to - from
     return Math.round(Math.random() * rangeLenght + from)
