@@ -12,15 +12,14 @@ const symbolsNum = 31
 const symbolsOffsets = [0, 1, 3, 10, 14, 26]
 
 const deckPos = [420, 50]
-
-const deckBlockedDuration = 1500
-const symbolFadeDuration = 200
-
 const deckOffRange = [10, 20]
 const deckOffFreq = 5
 
+const deckBlockedDuration = 1500
+const symbolFadeDuration = 200
 const deckAnimDuration = 10
 const discardAnimDuration = 100
+
 
 const cardTemplate = [
     {
@@ -73,6 +72,12 @@ const roundEndWait = 1000
 const endScreenWait = 1000
 
 
+
+var assets = {
+    card: null,
+    symbols: []
+}
+
 var playerLastDisplay
 var playerStreak
 
@@ -81,7 +86,8 @@ var deckBlocked = false
 var pile
 
 
-function setPosTextEl() {
+
+function setPosGameUi() {
     let canvasOffset = [
         (window.innerWidth-byClass('game-canvas').width)/2,
         (window.innerHeight-byClass('game-canvas').height)/2
@@ -93,6 +99,28 @@ function setPosTextEl() {
     byClass('player-display').style.left = `${canvasOffset[0]+playerDisplayOffset[0]}px`
     byClass('player-display').style.top = `${canvasOffset[1]+playerDisplayOffset[1]}px`
 }
+
+async function endScreen(players) {
+    byClass('player-score').innerHTML = ''
+    byClass('player-end-screen').classList.remove('hide')
+
+    for(const [name, score] of players) {
+        let node = document.createElement('TR')
+        node.innerHTML = `<td>${name}</td><td>${score}</td>`
+        byClass('player-score').appendChild(node)
+    }
+
+    await wait(endScreenWait)
+    document.onclick = (event) => {
+        if(byClass('player-end-screen').contains(event.target)) return
+
+        onStartScreen()
+        document.onclick = () => {}
+    }
+}
+
+function resetScene() {}
+
 
 async function discardCard(toMyPile=false) {
     let topCard = await canvas.discardAnimate(
@@ -109,7 +137,7 @@ function symbolBelongTopCard(event) {
     return deck[deck.length - 1].cardImage == event.target.cardImage || pile.cardImage == event.target.cardImage
 }
 
-function onSymbolSelected(event) {
+function symbolSelected(event) {
     let symbolId = event?.target?.symbolId
     if(symbolId == undefined ||
         deckBlocked || 
@@ -130,30 +158,28 @@ function onSymbolSelected(event) {
 }
 
 
-function resetScene() {}
+// ----->  network events
 
 
-export async function onSymbolGlobalCorrect(player, symbolId) {
-    if(playerLastDisplay == player.id) {
-        playerStreak++
-        byClass('player-display-streak').classList.remove('hide')
-    } else {
-        playerStreak = 1
-        byClass('player-display-streak').classList.add('hide')
+
+export function onStartScreen() {
+    byClass('player-end-screen').classList.add('hide')
+    byClass('player-start-screen').classList.remove('hide')
+    byClass('player-ready-input').checked = false
+    
+    let sendNameTimeout
+    byClass('player-name-input').onkeyup = () => {
+        clearTimeout(sendNameTimeout)
+        sendNameTimeout = setTimeout(() => {
+            socketManager.sendName(byClass('player-name-input').value)
+        }, playerSendNameTimeout)
     }
 
-    byClass('player-display').classList.remove('fade-from-down')
-    playerLastDisplay = player.id
-    byClass('player-display-name').innerHTML = player.name
-    byClass('player-display-streak-num').innerHTML = playerStreak.toString()
-    
-    setTimeout(function() {
-        byClass('player-display').classList.add('fade-from-down')
-    }, 150)
-
-    deckBlocked = false
-    discardCard((player.id == curPlayerId))
+    byClass('player-ready-input').onchange = () => {
+        socketManager.sendReady(byClass('player-ready-input').checked)
+    }
 }
+
 
 export function onPlayerListChange(players) {
     delete players[curPlayerId]
@@ -179,6 +205,7 @@ export function onPlayerListChange(players) {
         byClass('player-list').appendChild(node)
     }
 }
+
 
 export async function onRoundStart(seed) {
     await wait(roundStartWait)
@@ -213,7 +240,31 @@ export async function onRoundStart(seed) {
     discardCard(true)
 }
 
-export async function onRoundEnd() {
+
+export async function onSymbolGlobalCorrect(player, symbolId) {
+    if(playerLastDisplay == player.id) {
+        playerStreak++
+        byClass('player-display-streak').classList.remove('hide')
+    } else {
+        playerStreak = 1
+        byClass('player-display-streak').classList.add('hide')
+    }
+
+    byClass('player-display').classList.remove('fade-from-down')
+    playerLastDisplay = player.id
+    byClass('player-display-name').innerHTML = player.name
+    byClass('player-display-streak-num').innerHTML = playerStreak.toString()
+    
+    setTimeout(function() {
+        byClass('player-display').classList.add('fade-from-down')
+    }, 150)
+
+    deckBlocked = false
+    discardCard((player.id == curPlayerId))
+}
+
+
+export async function onRoundEnd(scorePlayers) {
     await wait(roundEndWait)
 
     deck.push(pile)
@@ -228,46 +279,10 @@ export async function onRoundEnd() {
     byClass('player-display').classList.remove('fade-from-down')
 
     await wait(100)
+    endScreen(scorePlayers)
 }
 
-export function onStartScreen() {
-    byClass('player-end-screen').classList.add('hide')
-    byClass('player-start-screen').classList.remove('hide')
-    byClass('player-ready-input').checked = false
-    
-    let sendNameTimeout
-    byClass('player-name-input').onkeyup = () => {
-        clearTimeout(sendNameTimeout)
-        sendNameTimeout = setTimeout(() => {
-            socketManager.sendName(byClass('player-name-input').value)
-        }, playerSendNameTimeout)
-    }
 
-    byClass('player-ready-input').onchange = () => {
-        socketManager.sendReady(byClass('player-ready-input').checked)
-    }
-
-    socketManager.sendReady(true)
-}
-
-export async function onEndScreen(players) {
-    byClass('player-score').innerHTML = ''
-    byClass('player-end-screen').classList.remove('hide')
-
-    for(const [name, score] of players) {
-        let node = document.createElement('TR')
-        node.innerHTML = `<td>${name}</td><td>${score}</td>`
-        byClass('player-score').appendChild(node)
-    }
-
-    await wait(endScreenWait)
-    document.onclick = (event) => {
-        if(byClass('player-end-screen').contains(event.target)) return
-
-        onStartScreen()
-        document.onclick = () => {}
-    }
-}
 
 // document.addEventListener('mousemove', event => {
 //     floatingTextEl.style.transform = `translate(
@@ -277,11 +292,8 @@ export async function onEndScreen(players) {
 // })
 
 
-//gameLoad.js
-var assets = {
-    card: null,
-    symbols: []
-}
+// ----->  game load
+
 
 async function loadAssets() {        
     let assets = {}
@@ -320,10 +332,12 @@ async function loadAssets() {
 }
 
 async function onPageLoaded() {
-    setPosTextEl()
+    setPosGameUi()
+    window.addEventListener('resize', setPosGameUi)
+
     canvas.passAssets(await loadAssets())
     canvas.initCanvas()
-    canvas.onMouseDown(onSymbolSelected)
+    canvas.onMouseDown(symbolSelected)
 
     socketManager.initConnection()
 }

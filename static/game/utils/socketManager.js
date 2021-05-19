@@ -36,13 +36,13 @@ function onConnection() {
         game.onPlayerListChange(players)
     })
 
-    socket.on('round-end', async (scorePlayers) => {
-        await game.onRoundEnd()
-        game.onEndScreen(scorePlayers)
+    socket.on('round-end', (scorePlayers) => {
+        game.onRoundEnd(scorePlayers)
     })
 
     game.onStartScreen()
 }
+
 
 export function initConnection() {
     socket = io()
