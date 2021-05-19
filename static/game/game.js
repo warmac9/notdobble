@@ -59,11 +59,14 @@ const pilePos = [20, 260]
 const otherPilePos = [0, -cardSize]
 const otherPileDiscardOpacity = 0.25
 
+
 const cardLeftOffset = [
     deckPos[0]+cardSize-30, 
     deckPos[1]+cardSize-30
 ]
-const playerDisplayOffset = [60, 0]
+
+const playerDisplayOffset = [350, 50]
+const playerDisplayWidth = 800
 
 
 const playerSendNameTimeout = 500
@@ -96,7 +99,8 @@ function setPosGameUi() {
     byClass('card-left').style.left = `${canvasOffset[0]+cardLeftOffset[0]}px`
     byClass('card-left').style.top = `${canvasOffset[1]+cardLeftOffset[1]}px`
     
-    byClass('player-display').style.left = `${canvasOffset[0]+playerDisplayOffset[0]}px`
+    byClass('player-display').style.width = `${playerDisplayWidth}px`
+    byClass('player-display').style.left = `${canvasOffset[0]+playerDisplayOffset[0]-playerDisplayWidth}px`
     byClass('player-display').style.top = `${canvasOffset[1]+playerDisplayOffset[1]}px`
 }
 
@@ -158,8 +162,8 @@ function symbolSelected(event) {
 }
 
 
-// ----->  network events
 
+// ----->  network events
 
 
 export function onStartScreen() {
@@ -244,10 +248,10 @@ export async function onRoundStart(seed) {
 export async function onSymbolGlobalCorrect(player, symbolId) {
     if(playerLastDisplay == player.id) {
         playerStreak++
-        byClass('player-display-streak').classList.remove('hide')
+        byClass('player-display-streak').style.visibility = 'visible'
     } else {
         playerStreak = 1
-        byClass('player-display-streak').classList.add('hide')
+        byClass('player-display-streak').style.visibility = 'hidden'
     }
 
     byClass('player-display').classList.remove('fade-from-down')
@@ -290,6 +294,7 @@ export async function onRoundEnd(scorePlayers) {
 //         ${Math.min(event.clientY + 10, window.innerHeight - 60)}px
 //     )`
 // })
+
 
 
 // ----->  game load
@@ -338,6 +343,14 @@ async function onPageLoaded() {
     canvas.passAssets(await loadAssets())
     canvas.initCanvas()
     canvas.onMouseDown(symbolSelected)
+
+    // //debug
+    // await onRoundStart(27)
+    // onSymbolGlobalCorrect({
+    //     id: undefined,
+    //     name: 'godlike_27'
+    // })
+    // return
 
     socketManager.initConnection()
 }

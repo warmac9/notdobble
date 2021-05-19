@@ -57,12 +57,15 @@ div, p, span, li, th, td {
     color: #484848;
 }
 .player-display {
-    font-size: 50px;
-    color: #636363;
     position: absolute;
+    word-break: break-all;
+    font-size: calc(30px + 2.5vw);
+    text-align: right;
+    color: #636363;
 }
 .player-display-streak {
-    font-size: 30px;
+    word-break: keep-all;
+    font-size: calc(25px + 1vw);
     color: #949494;
     vertical-align: super;
 }
