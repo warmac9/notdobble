@@ -71,7 +71,7 @@ div, p, span, li, th, td {
 }
 
 
-.player-start-screen {
+.player-start-screen-area {
     position: absolute !important;
     left: 50%;
     top: 50%;
@@ -83,7 +83,13 @@ div, p, span, li, th, td {
     padding: 10px;
     font-size: 40px;
     color: #414141;
-    border: solid 2px #414141;
+    border: solid 3px #414141;
+    border-radius: 10px;
+}
+.player-name-input:focus {
+    outline: none;
+    border-width: 4px;
+    padding: 9px;
 }
 .player-not-ready-label, .player-ready-label {
     padding: 15px;
@@ -113,14 +119,19 @@ input:checked ~ .player-not-ready-label {
     box-sizing: border-box;
     margin-top: 55px;
     padding-top: 10px;
-    padding: 20px;
+    padding: 30px;
+    padding-bottom: 20px;
     font-size: 20px;
-    border-top: solid 1px #414141;
+    border: solid 3px #414141;
+    border-radius: 10px;
     color: #414141;
-    background-color: #fafafa;
+    background-color: #fbfbfb;
 }
 .player-list {
-    padding-left: 20px;
+    padding-left: 40px;
+}
+.player-list-title {
+    font-size: 25px;
 }
 
 

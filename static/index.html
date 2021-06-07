@@ -15,7 +15,7 @@
 <body>
     <canvas id="canvas" class="game-canvas" width="800" height="600"></canvas>
 
-    <div class="player-start-screen hide">
+    <div class="player-start-screen-area player-start-screen hide">
         <input type="text" maxlength="10" placeholder="Zadajte meno" class="player-name-input">
         <input type="checkbox" id="ready" class="player-ready-input hide"></input>
         <label class="player-not-ready-label" for="ready">
@@ -25,7 +25,7 @@
             <b>je ready!</b>
         </label>
         <div class="player-list-container">
-            <b>Players:</b>
+            <b class="player-list-title">Players:</b>
             <ul class="player-list">
             </ul>
         </div>
