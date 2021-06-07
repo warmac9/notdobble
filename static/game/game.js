@@ -246,6 +246,9 @@ export async function onRoundStart(seed) {
 
 
 export async function onSymbolGlobalCorrect(player, symbolId) {
+    //prevent game ui from appearing in menu
+    if(deck === undefined) return
+
     if(playerLastDisplay == player.id) {
         playerStreak++
         byClass('player-display-streak').style.visibility = 'visible'
@@ -343,14 +346,6 @@ async function onPageLoaded() {
     canvas.passAssets(await loadAssets())
     canvas.initCanvas()
     canvas.onMouseDown(symbolSelected)
-
-    // //debug
-    // await onRoundStart(27)
-    // onSymbolGlobalCorrect({
-    //     id: undefined,
-    //     name: 'godlike_27'
-    // })
-    // return
 
     socketManager.initConnection()
 }
