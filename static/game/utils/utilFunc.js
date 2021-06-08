@@ -11,6 +11,11 @@ export function randomRange(from, to) {
 }
 
 
+export function randomChoice(arr) {
+    return arr[randomRange(0, arr.length-1)]
+}
+
+
 export async function wait(millsec) {
     await new Promise(function(Resolve, Reject) {
         setTimeout(function() {

@@ -16,13 +16,13 @@
     <canvas id="canvas" class="game-canvas" width="800" height="600"></canvas>
 
     <div class="player-start-screen-area player-start-screen hide">
-        <input type="text" maxlength="10" placeholder="Zadajte meno" class="player-name-input">
+        <input type="text" maxlength="10" placeholder="foo (your name)" class="player-name-input">
         <input type="checkbox" id="ready" class="player-ready-input hide"></input>
         <label class="player-not-ready-label" for="ready">
-            sa nepripravil.
+            ain`t prepared.
         </label>
         <label class="player-ready-label" for="ready">
-            <b>je ready!</b>
+            <b>is ready!</b>
         </label>
         <div class="player-list-container">
             <b class="player-list-title">Players:</b>
@@ -32,12 +32,12 @@
     </div>
 
     <div class="player-end-screen hide">
-        <p>Pozn: kliknite mimo tabulky</p>
+        <p>Click outside the table to hide it.</p>
         <table>
             <thead>
                 <tr>
-                    <th>Meno</th>
-                    <th>Skóre</th>
+                    <th>Name</th>
+                    <th>Score</th>
                 </tr>
             </thead>
             <tbody class="player-score">

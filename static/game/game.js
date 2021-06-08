@@ -1,4 +1,4 @@
-import { byClass, wait } from './utils/utilFunc.js'
+import { byClass, wait, randomChoice } from './utils/utilFunc.js'
 import { generateCards, randomizeCards } from './utils/deckGenerator.js'
 
 import * as canvas from './canvas/canvasManager.js'
@@ -69,10 +69,10 @@ const playerDisplayOffset = [350, 50]
 const playerDisplayWidth = 800
 
 
-const playerSendNameTimeout = 500
+const playerSendNameTimeout = 250
 const roundStartWait = 700
 const roundEndWait = 1000
-const endScreenWait = 1000
+const endScreenWait = 500
 
 
 
@@ -191,7 +191,7 @@ export function onPlayerListChange(players) {
 
     if(Object.keys(players).length == 0) {
         let node = document.createElement('LI')
-        node.innerHTML = 'Nikto nie je pripojený :('
+        node.innerHTML = 'Nobody is connected :('
         byClass('player-list').appendChild(node)
         return
     } 
@@ -200,11 +200,11 @@ export function onPlayerListChange(players) {
         const { name, ready, inGame } = player
 
         let node = document.createElement('LI')
-        node.innerHTML = `<b>${name}</b>` 
+        node.innerHTML = `<b>${name} </b>` 
         if(ready)
-            node.innerHTML += ' je pripravený/á'
+            node.innerHTML += randomChoice(['is prepared.', '\'s ready to play!', '\'s excited to play.', 'is waiting for others to prepare.'])
         else if(inGame)
-            node.innerHTML += ' je práve v hre'
+            node.innerHTML += randomChoice(['\'s in the game.', 'is currently playing.'])
         
         byClass('player-list').appendChild(node)
     }
