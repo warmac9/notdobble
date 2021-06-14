@@ -143,13 +143,16 @@ function leaveRoom(socket, roomId, playerId) {
 
 io.on('connection', (socket) => {
   joinRoom(socket, 'main', socket.id)
+  console.log(rooms)
 
   socket.on('set-room', (roomId) => {
     let oldRoomId = getRoom(socket)
     let playerName = rooms[oldRoomId].players[socket.id].name
 
     leaveRoom(socket, oldRoomId, socket.id)
-    joinRoom(socket, roomId, socket.id, playerName)
+    joinRoom(socket, (roomId == '' ? 'main' : roomId), socket.id, playerName)
+
+    console.log(rooms)
   })
 
   socket.on('set-player', (options) => {

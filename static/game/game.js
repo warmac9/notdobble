@@ -81,6 +81,7 @@ var assets = {
     symbols: []
 }
 
+var currentRoom = ''
 var playerLastDisplay
 var playerStreak
 
@@ -175,22 +176,6 @@ export function onStartScreen() {
     byClass('player-end-screen').classList.add('hide')
     byClass('player-start-screen').classList.remove('hide')
     byClass('player-ready-input').checked = false
-    
-    let sendNameTimeout
-    byClass('player-name-input').onkeyup = () => {
-        clearTimeout(sendNameTimeout)
-        sendNameTimeout = setTimeout(() => {
-            socketManager.sendName(byClass('player-name-input').value)
-        }, playerSendNameTimeout)
-    }
-
-    byClass('room-set-but').onclick = () => {
-        socketManager.sendRoom(byClass('room-set-input').value)
-    }
-
-    byClass('player-ready-input').onchange = () => {
-        socketManager.sendReady(byClass('player-ready-input').checked)
-    }
 }
 
 
@@ -225,10 +210,6 @@ export async function onRoundStart(seed) {
 
     playerStreak = 0
     playerLastDisplay = undefined
-
-    byClass('player-start-screen').classList.add('hide')
-    byClass('player-name-input').onkeyup = () => {}
-    byClass('player-ready-input').onchange = () => {}
     
     deck = canvas.initDeck(
         cardTemplate,
@@ -236,8 +217,9 @@ export async function onRoundStart(seed) {
         deckPos, 
         deckOffRange,
         deckOffFreq
-    )
-
+        )
+        
+    byClass('player-start-screen').classList.add('hide')
     byClass('card-left-num').innerHTML = 0
     byClass('card-left').classList.remove('hide')
     byClass('card-left').classList.remove('shake')
@@ -367,6 +349,28 @@ async function onPageLoaded() {
     socketManager.initConnection()
     byClass('player-name-input').value = ''
     byClass('room-set-but').value = ''
+
+    let sendNameTimeout
+    byClass('player-name-input').addEventListener('keyup', (event) => {
+        clearTimeout(sendNameTimeout)
+        sendNameTimeout = setTimeout(() => {
+            socketManager.sendName(byClass('player-name-input').value)
+        }, playerSendNameTimeout)
+    })
+
+    byClass('room-set-but').addEventListener('click', (event) => {
+        currentRoom = byClass('room-set-input').value
+        socketManager.sendRoom(byClass('room-set-input').value)
+    })
+    
+    byClass('player-ready-input').addEventListener('change', (event) => {
+        socketManager.sendReady(byClass('player-ready-input').checked)
+    })
+    
+    document.addEventListener('click', (event) => {
+        if(event.target != byClass('room-set-but')) 
+            byClass('room-set-input').value = currentRoom
+    })
 }
 
 document.addEventListener('DOMContentLoaded', onPageLoaded)
