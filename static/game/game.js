@@ -135,6 +135,11 @@ async function discardCard(toMyPile=false) {
     if(toMyPile)
         pile = topCard
     byClass('card-left-num').innerHTML = deck.length
+
+    //temp
+    if(deck.length == 29) {
+        byClass('card-left').classList.add('shake')
+    }
 }
 
 function symbolBelongTopCard(event) {
@@ -235,6 +240,7 @@ export async function onRoundStart(seed) {
 
     byClass('card-left-num').innerHTML = 0
     byClass('card-left').classList.remove('hide')
+    byClass('card-left').classList.remove('shake')
 
     let deckAnimateGenerator = canvas.deckAnimate(deck, deckAnimDuration)
     while(true) {
@@ -253,23 +259,30 @@ export async function onSymbolGlobalCorrect(player, symbolId) {
     //prevent game ui from appearing in menu
     if(deck === undefined) return
     byClass('player-display').classList.remove('hide')
+
+    byClass('player-display-name').innerHTML = player.name
+    byClass('player-display-streak-num').innerHTML = playerStreak.toString()
     
     if(playerLastDisplay == player.id) {
         playerStreak++
         byClass('player-display-streak').style.visibility = 'visible'
+
+        byClass('player-display-streak').classList.remove('explode')
+        setTimeout(function() {
+            byClass('player-display-streak').classList.add('explode')
+        }, 10)
+
     } else {
         playerStreak = 1
         byClass('player-display-streak').style.visibility = 'hidden'
+
+        byClass('player-display').classList.remove('fade-from-down')
+        setTimeout(function() {
+            byClass('player-display').classList.add('fade-from-down')
+        }, 10)
     }
-
     playerLastDisplay = player.id
-    byClass('player-display-name').innerHTML = player.name
-    byClass('player-display-streak-num').innerHTML = playerStreak.toString()
     
-    setTimeout(function() {
-        byClass('player-display').classList.add('fade-from-down')
-    }, 150)
-
     deckBlocked = false
     discardCard((player.id == curPlayerId))
 }

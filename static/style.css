@@ -12,38 +12,64 @@ input:focus {
 .hide {
     display: none !important;
 }
-.fade-from-down {
-    animation-name: fade-from-down;
-    animation-duration: 0.4s;
-    display: block;
-}
-.fade-up {
-    animation-name: fade-up;
-    animation-duration: 0.4s;
-    opacity: 0;
+.no-select {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
+.fade-from-down {
+    animation-name: fade-from-down;
+    animation-duration: 0.2s;
+}
 @keyframes fade-from-down {
     0% {
         transform: translateY(50px);
         opacity: 0;
     }
+    50% {
+        opacity: 0.3;
+    }
     100% {
         transform: translateY(0px);
         opacity: 1;
     }
 }
-@keyframes fade-up {
+
+.explode {
+    animation-name: explode;
+    animation-duration: 0.4s;
+}
+@keyframes explode {
     0% {
-        transform: translateY(0px);
-        opacity: 1;
+        transform: scale(1, 1);
+    }
+    10% {
+        transform: scale(0.9, 0.9);
     }
     50% {
-        opacity: 0;
+        transform: scale(1.3, 1.3);
     }
     100% {
-        transform: translateY(-25px);
-        opacity: 0;
+        transform: scale(1, 1);
+    }
+}
+
+.shake {
+    animation-name: shake;
+    animation-duration: 0.2s;
+    animation-iteration-count: infinite;
+}
+@keyframes shake {
+    0% {
+        transform: translateX(-2px);
+    }
+    50% {
+        transform: translateX(2px);
+    }
+    100% {
+        transform: translateX(-2px);
     }
 }
 
@@ -61,12 +87,14 @@ input:focus {
 }
 .player-display {
     position: absolute;
+    display: inline-block;
     word-break: break-all;
-    font-size: calc(30px + 2.5vw);
+    font-size: calc(40px + 1.5vw);
     text-align: right;
     color: #636363;
 }
 .player-display-streak {
+    display: inline-block;
     word-break: keep-all;
     font-size: calc(25px + 1vw);
     color: #949494;
@@ -99,10 +127,6 @@ input:focus {
     color: #a81717;
     white-space: nowrap;
     cursor: pointer;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
 }
 .player-ready-label {
     display: none;
@@ -136,10 +160,6 @@ input:checked ~ .player-not-ready-label {
     border-radius: 10px;
     padding: 5px;
     cursor: pointer;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
 }
 .room-set-but:hover {
     border-width: 3px;
