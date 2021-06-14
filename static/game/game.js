@@ -82,6 +82,8 @@ var assets = {
 }
 
 var currentRoom = ''
+var oldPlayersList
+
 var playerLastDisplay
 var playerStreak
 
@@ -124,7 +126,12 @@ async function endScreen(players) {
     }
 }
 
-function resetScene() {}
+function startAnimation(elClass, animClass) {
+    byClass(elClass).classList.remove(animClass)
+    setTimeout(function() {
+        byClass(elClass).classList.add(animClass)
+    }, 10)
+}
 
 
 async function discardCard(toMyPile=false) {
@@ -187,21 +194,26 @@ export function onPlayerListChange(players) {
         let node = document.createElement('LI')
         node.innerHTML = 'Nobody is connected :('
         byClass('player-list').appendChild(node)
-        return
     } 
 
     for(const [playerId, player] of Object.entries(players)) {
         const { name, ready, inGame } = player
 
         let node = document.createElement('LI')
-        node.innerHTML = `<b>${name} </b>` 
+        node.innerHTML = `<b>${name} </b>`
         if(ready)
             node.innerHTML += randomChoice(['is prepared.', '\'s ready to play!', '\'s excited to play.', 'is waiting for others to prepare.'])
         else if(inGame)
             node.innerHTML += randomChoice(['\'s in the game.', 'is currently playing.'])
         
         byClass('player-list').appendChild(node)
+
     }
+
+    if(oldPlayersList == undefined || (Object.entries(players).length != 0 && Object.keys(players).join() != oldPlayersList))
+        startAnimation('player-list-container', 'mini-explode')
+
+    oldPlayersList = Object.keys(players).join()
 }
 
 
@@ -248,20 +260,12 @@ export async function onSymbolGlobalCorrect(player, symbolId) {
     if(playerLastDisplay == player.id) {
         playerStreak++
         byClass('player-display-streak').style.visibility = 'visible'
-
-        byClass('player-display-streak').classList.remove('explode')
-        setTimeout(function() {
-            byClass('player-display-streak').classList.add('explode')
-        }, 10)
+        startAnimation('player-display-streak', 'explode')
 
     } else {
         playerStreak = 1
         byClass('player-display-streak').style.visibility = 'hidden'
-
-        byClass('player-display').classList.remove('fade-from-down')
-        setTimeout(function() {
-            byClass('player-display').classList.add('fade-from-down')
-        }, 10)
+        startAnimation('player-display', 'fade-from-down')
     }
     playerLastDisplay = player.id
     
@@ -360,6 +364,7 @@ async function onPageLoaded() {
 
     byClass('room-set-but').addEventListener('click', (event) => {
         currentRoom = byClass('room-set-input').value
+        startAnimation('room-set-but', 'mini-explode')
         socketManager.sendRoom(byClass('room-set-input').value)
     })
     

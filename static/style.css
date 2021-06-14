@@ -56,6 +56,25 @@ input:focus {
     }
 }
 
+.mini-explode {
+    animation-name: mini-explode;
+    animation-duration: 0.4s;
+}
+@keyframes mini-explode {
+    0% {
+        transform: scale(1, 1);
+    }
+    10% {
+        transform: scale(0.95, 0.95);
+    }
+    50% {
+        transform: scale(1.05, 1.05);
+    }
+    100% {
+        transform: scale(1, 1);
+    }
+}
+
 .shake {
     animation-name: shake;
     animation-duration: 0.2s;
@@ -133,7 +152,9 @@ input:focus {
     color: #17a82f !important;
 }
 input:checked ~ .player-ready-label {
-    display: inline !important;
+    display: inline-block !important;
+    animation-name: mini-explode;
+    animation-duration: 0.4s;
 }
 input:checked ~ .player-not-ready-label {
     display: none !important;
@@ -148,6 +169,7 @@ input:checked ~ .player-not-ready-label {
     width: 120px;
     padding: 5px;
     font-size: 18px;
+    font-weight: bold;
     color: #414141;
     border: solid 2px #414141;
     border-radius: 10px;
@@ -157,7 +179,7 @@ input:checked ~ .player-not-ready-label {
     padding: 4px;
 }
 .room-set-but {
-    display: inline;
+    display: inline-block;
     color: #414141;
     font-size: 18px;
     font-weight: bold;
