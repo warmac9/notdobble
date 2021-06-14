@@ -85,7 +85,7 @@ export async function discardAnimate(topCard, pileCard, endPos, toMyPile, animDu
 
     await animate(animateArgs)
 
-    if(pileCard != undefined)
+    if(toMyPile && pileCard != undefined)
         pileCard.images.forEach(image => {
             canvas.remove(image)
         })
