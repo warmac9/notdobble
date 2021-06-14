@@ -179,6 +179,10 @@ export function onStartScreen() {
         }, playerSendNameTimeout)
     }
 
+    byClass('room-set-but').onclick = () => {
+        socketManager.sendRoom(byClass('room-set-input').value)
+    }
+
     byClass('player-ready-input').onchange = () => {
         socketManager.sendReady(byClass('player-ready-input').checked)
     }
@@ -228,7 +232,7 @@ export async function onRoundStart(seed) {
         deckOffRange,
         deckOffFreq
     )
-    
+
     byClass('card-left-num').innerHTML = 0
     byClass('card-left').classList.remove('hide')
 
@@ -248,7 +252,8 @@ export async function onRoundStart(seed) {
 export async function onSymbolGlobalCorrect(player, symbolId) {
     //prevent game ui from appearing in menu
     if(deck === undefined) return
-
+    byClass('player-display').classList.remove('hide')
+    
     if(playerLastDisplay == player.id) {
         playerStreak++
         byClass('player-display-streak').style.visibility = 'visible'
@@ -257,7 +262,6 @@ export async function onSymbolGlobalCorrect(player, symbolId) {
         byClass('player-display-streak').style.visibility = 'hidden'
     }
 
-    byClass('player-display').classList.remove('fade-from-down')
     playerLastDisplay = player.id
     byClass('player-display-name').innerHTML = player.name
     byClass('player-display-streak-num').innerHTML = playerStreak.toString()
@@ -348,6 +352,8 @@ async function onPageLoaded() {
     canvas.onMouseDown(symbolSelected)
 
     socketManager.initConnection()
+    byClass('player-name-input').value = ''
+    byClass('room-set-but').value = ''
 }
 
 document.addEventListener('DOMContentLoaded', onPageLoaded)

@@ -9,11 +9,11 @@ export function sendReady(ready) {
 }
 
 export function sendName(name) {
-    if(name == '') {
-        socket.emit('set-player', { name: 'foo' })
-        return
-    }
-    socket.emit('set-player', { name: name })
+    socket.emit('set-player', { name: name == '' ? 'foo' : name })
+}
+
+export function sendRoom(room) {
+    socket.emit('set-room', '' ? 'main' : room)
 }
 
 export function sendCorrectSymbol(symbolId, deckLength) {

@@ -23,9 +23,9 @@ class Room {
 
 
 class Player {
-  constructor(id) {
+  constructor(id, name='foo') {
     this.id = id
-    this.name = 'foo'
+    this.name = name
     this.ready = false
     this.inGame = false
     this.score = 0
@@ -102,7 +102,7 @@ function onSymbolSelected(roomId, playerId, symbolId, deckCount) {
     rooms[roomId].players[playerId].score++
     io.to(roomId).emit('symbol-correct', rooms[roomId].players[playerId], symbolId)
 
-    if(deckCount == 30) {
+    if(deckCount == 29) {
       roundEnd(roomId)
     }
 }
@@ -116,21 +116,20 @@ function onSetPlayer(roomId, playerId, options) {
 }
 
 
-function onConnection(socket) {
-  let roomId = 'main'
-  let playerId = socket.id
+function joinRoom(socket, roomId, playerId, playerName) {
   socket.join(roomId)
 
   if(!rooms.hasOwnProperty(roomId)) {
     rooms[roomId] = new Room()
   }
 
-  rooms[roomId].players[playerId] = new Player(playerId)
+  rooms[roomId].players[playerId] = new Player(playerId, playerName)
   playersChanged(roomId)
 }
 
 
-function onDisconnection(roomId, playerId) {
+function leaveRoom(socket, roomId, playerId) {
+  socket.leave(roomId)
   delete rooms[roomId].players[playerId]
 
   if(Object.keys(rooms[roomId].players).length === 0) {
@@ -143,12 +142,15 @@ function onDisconnection(roomId, playerId) {
 
 
 io.on('connection', (socket) => {
-  onConnection(socket)
+  joinRoom(socket, 'main', socket.id)
 
-  // socket.on('set-room', (roomId) => {
-  //   socket.join(roomId)
-  //   socket.emit('player-list', rooms[roomId].players)
-  // })
+  socket.on('set-room', (roomId) => {
+    let oldRoomId = getRoom(socket)
+    let playerName = rooms[oldRoomId].players[socket.id].name
+
+    leaveRoom(socket, oldRoomId, socket.id)
+    joinRoom(socket, roomId, socket.id, playerName)
+  })
 
   socket.on('set-player', (options) => {
     onSetPlayer(getRoom(socket), socket.id, options)
@@ -159,7 +161,7 @@ io.on('connection', (socket) => {
   })
 
   socket.on("disconnecting", () => {
-    onDisconnection(getRoom(socket), socket.id)
+    leaveRoom(socket, getRoom(socket), socket.id)
   })
 })
 
