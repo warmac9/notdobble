@@ -7,7 +7,6 @@ import * as socketManager from './utils/socketManager.js'
 import { curPlayerId } from './utils/socketManager.js'
 
 
-
 const symbolsNum = 31
 const symbolsOffsets = [0, 1, 3, 10, 14, 26]
 
@@ -73,7 +72,6 @@ const playerSendNameTimeout = 250
 const roundStartWait = 700
 const roundEndWait = 1000
 const endScreenWait = 500
-
 
 
 var assets = {
@@ -361,15 +359,19 @@ async function onPageLoaded() {
             socketManager.sendName(byClass('player-name-input').value)
         }, playerSendNameTimeout)
     })
+    
+    byClass('player-ready-input').addEventListener('change', (event) => {
+        socketManager.sendReady(byClass('player-ready-input').checked)
+    })
+
+    byClass('room-set-input').addEventListener('keydown', (event) => {
+        if(event.keyCode == 32) event.preventDefault()
+    })
 
     byClass('room-set-but').addEventListener('click', (event) => {
         currentRoom = byClass('room-set-input').value
         startAnimation('room-set-but', 'mini-explode')
         socketManager.sendRoom(byClass('room-set-input').value)
-    })
-    
-    byClass('player-ready-input').addEventListener('change', (event) => {
-        socketManager.sendReady(byClass('player-ready-input').checked)
     })
     
     document.addEventListener('click', (event) => {

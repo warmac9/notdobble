@@ -14,6 +14,7 @@ app.get('/', function (req, res) {
 })
 
 
+
 class Room {
   constructor() {
     this.players = {}
@@ -110,8 +111,17 @@ function onSymbolSelected(roomId, playerId, symbolId, deckCount) {
 
 function onSetPlayer(roomId, playerId, options) {
   for([key, value] of Object.entries(options)) {
-    rooms[roomId].players[playerId][key] = value
+    if(key == 'name')
+      rooms[roomId].players[playerId][key] = value
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;")
+    else
+      rooms[roomId].players[playerId][key] = value
   }
+  
   playersChanged(roomId)
 }
 
