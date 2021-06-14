@@ -292,15 +292,6 @@ export async function onRoundEnd(scorePlayers) {
 
 
 
-// document.addEventListener('mousemove', event => {
-//     floatingTextEl.style.transform = `translate(
-//         ${Math.min(event.clientX + 30, window.innerWidth - 250)}px,
-//         ${Math.min(event.clientY + 10, window.innerHeight - 60)}px
-//     )`
-// })
-
-
-
 // ----->  game load
 
 
