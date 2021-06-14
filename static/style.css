@@ -5,9 +5,12 @@ html, body {
 div, p, span, li, th, td {
     font-family:Arial;
 }
+input:focus {
+    outline: none;
+}
 
 .hide {
-    display: none
+    display: none !important;
 }
 .fade-from-down {
     animation-name: fade-from-down;
@@ -87,7 +90,6 @@ div, p, span, li, th, td {
     border-radius: 10px;
 }
 .player-name-input:focus {
-    outline: none;
     border-width: 4px;
     padding: 9px;
 }
@@ -113,11 +115,42 @@ input:checked ~ .player-not-ready-label {
     display: none !important;
 }
 
+.room-set-area {
+    padding: 30px;
+    float: right;
+    font-size: 18px;
+}
+.room-set-input {
+    width: 120px;
+    padding: 5px;
+    font-size: 18px;
+    color: #414141;
+    border: solid 2px #414141;
+    border-radius: 10px;
+}
+.room-set-but {
+    display: inline;
+    font-size: 18px;
+    font-weight: bold;
+    border: solid 2px #414141;
+    border-radius: 10px;
+    padding: 5px;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+.room-set-but:hover {
+    border-width: 3px;
+    padding: 4px;
+}
+
 .player-list-container {
     max-height: 297px;
     overflow-y: auto;
     box-sizing: border-box;
-    margin-top: 55px;
+    margin-top: 40px;
     padding-top: 10px;
     padding: 30px;
     padding-bottom: 20px;
@@ -141,16 +174,17 @@ input:checked ~ .player-not-ready-label {
     top: 25%;
     width: auto;
 }
-th, td {
-    font-size: 30px;
-    color: #4d4a4a;
-}
-table, th, td {
-    border: solid 2px #2e2d2d;
+table {
+    border: solid 3px #2e2d2d;
+    border-radius: 10px;
     padding: 15px;
 }
 th, td {
-    padding: 20px !important;
+    font-size: 30px;
+    color: #4d4a4a;
+    background-color: #f8f8f8;
+    border-radius: 20px;
+    padding: 25px !important;
 }
 td:first-child {
     text-align: left;

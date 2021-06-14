@@ -15,19 +15,26 @@
 <body>
     <canvas id="canvas" class="game-canvas" width="800" height="600"></canvas>
 
-    <div class="player-start-screen-area player-start-screen hide">
-        <input type="text" maxlength="10" placeholder="foo (your name)" class="player-name-input">
-        <input type="checkbox" id="ready" class="player-ready-input hide"></input>
-        <label class="player-not-ready-label" for="ready">
-            ain`t prepared.
-        </label>
-        <label class="player-ready-label" for="ready">
-            <b>is ready!</b>
-        </label>
-        <div class="player-list-container">
-            <b class="player-list-title">Players:</b>
-            <ul class="player-list">
-            </ul>
+    <div class="player-start-screen hide">
+        <div class="room-set-area">
+            <span>Room: </span>
+            <input class="room-set-input" type="text" maxlength="8" placeholder="main">
+            <div class="room-set-but">Set room</div>
+        </div>
+        <div class="player-start-screen-area">
+            <input type="text" maxlength="10" placeholder="foo (your name)" class="player-name-input">
+            <input type="checkbox" id="ready" class="player-ready-input hide"></input>
+            <label class="player-not-ready-label" for="ready">
+                ain`t prepared.
+            </label>
+            <label class="player-ready-label" for="ready">
+                <b>is ready!</b>
+            </label>
+            <div class="player-list-container">
+                <b class="player-list-title">Players:</b>
+                <ul class="player-list">
+                </ul>
+            </div>
         </div>
     </div>
 
