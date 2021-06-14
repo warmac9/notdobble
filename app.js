@@ -102,7 +102,7 @@ function onSymbolSelected(roomId, playerId, symbolId, deckCount) {
     rooms[roomId].players[playerId].score++
     io.to(roomId).emit('symbol-correct', rooms[roomId].players[playerId], symbolId)
 
-    if(deckCount == 29) {
+    if(deckCount == 0) {
       roundEnd(roomId)
     }
 }

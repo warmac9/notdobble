@@ -137,7 +137,7 @@ async function discardCard(toMyPile=false) {
     byClass('card-left-num').innerHTML = deck.length
 
     //temp
-    if(deck.length == 29) {
+    if(deck.length == 5) {
         byClass('card-left').classList.add('shake')
     }
 }
