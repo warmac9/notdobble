@@ -152,8 +152,13 @@ input:checked ~ .player-not-ready-label {
     border: solid 2px #414141;
     border-radius: 10px;
 }
+.room-set-input:focus {
+    border-width: 3px;
+    padding: 4px;
+}
 .room-set-but {
     display: inline;
+    color: #414141;
     font-size: 18px;
     font-weight: bold;
     border: solid 2px #414141;
