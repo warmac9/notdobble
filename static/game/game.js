@@ -159,7 +159,7 @@ function symbolSelected(event) {
         !symbolBelongTopCard(event)) return
 
     if(pile.symbols.includes(symbolId) && deck[deck.length-1].symbols.includes(symbolId)) {
-        socketManager.sendCorrectSymbol(symbolId, deck.length)
+        socketManager.sendCorrectSymbol(symbolId, deck.length - 1)
         return
     }
 
@@ -218,7 +218,7 @@ export function onPlayerListChange(players) {
 export async function onRoundStart(seed) {
     await wait(roundStartWait)
 
-    playerStreak = 0
+    playerStreak = 1
     playerLastDisplay = undefined
     
     deck = canvas.initDeck(
@@ -251,9 +251,6 @@ export async function onSymbolGlobalCorrect(player, symbolId) {
     //prevent game ui from appearing in menu
     if(deck === undefined) return
     byClass('player-display').classList.remove('hide')
-
-    byClass('player-display-name').innerHTML = player.name
-    byClass('player-display-streak-num').innerHTML = playerStreak.toString()
     
     if(playerLastDisplay == player.id) {
         playerStreak++
@@ -265,8 +262,11 @@ export async function onSymbolGlobalCorrect(player, symbolId) {
         byClass('player-display-streak').style.visibility = 'hidden'
         startAnimation('player-display', 'fade-from-down')
     }
-    playerLastDisplay = player.id
+
+    byClass('player-display-name').innerHTML = player.name
+    byClass('player-display-streak-num').innerHTML = playerStreak.toString()
     
+    playerLastDisplay = player.id
     deckBlocked = false
     discardCard((player.id == curPlayerId))
 }
