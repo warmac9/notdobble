@@ -1,6 +1,7 @@
 html, body {
     margin: 0;
     padding: 0;
+    overflow: hidden;
 }
 div, p, span, li, th, td {
     font-family:Arial;
@@ -34,6 +35,23 @@ input:focus {
     100% {
         transform: translateY(0px);
         opacity: 1;
+    }
+}
+
+.fade-up {
+    animation-name: fade-up;
+    animation-duration: 1.5s;
+    animation-fill-mode: forwards;
+}
+@keyframes fade-up {
+    0% {
+        transform: translateY(0px);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-5vh);
+        opacity: 0;
+        display: none;
     }
 }
 
@@ -282,8 +300,6 @@ tr:nth-child(1) td {
 
 
 .popup-symbol {
-    top: 120px;
-    left: 390px;
     position: absolute;
     width: 80px;
     height: 80px;
@@ -294,4 +310,34 @@ tr:nth-child(1) td {
 .popup-symbol:hover {
     animation-name: mini-explode;
     animation-duration: 0.4s;
+}
+
+.intro {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background-color: #ffffff;
+    cursor: pointer;
+}
+.intro-text {
+    position: absolute !important;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    border: solid 4px #2e2d2d;
+    border-radius: 20px;
+    padding: 2vw; 
+    font-weight: bold;
+    color: #2e2d2d;
+    background-color: #fbfbfb;
+}
+.intro-title {
+    font-size: 10vw;
+}
+.intro-desc {
+    display: inline-block;
+    padding-top: 1vw;
+    font-size: 1.5vw;
 }

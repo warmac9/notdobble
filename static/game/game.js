@@ -265,7 +265,7 @@ export async function onSymbolGlobalCorrect(player, symbolId) {
 
     byClass('player-display-name').innerHTML = player.name
     byClass('player-display-streak-num').innerHTML = playerStreak.toString()
-    
+
     playerLastDisplay = player.id
     deckBlocked = false
     discardCard((player.id == curPlayerId))
@@ -368,6 +368,18 @@ async function onPageLoaded() {
     document.addEventListener('click', (event) => {
         if(event.target != byClass('room-set-but')) 
             byClass('room-set-input').value = currentRoom
+    })
+
+    byClass('intro').addEventListener('click', (event) => {
+        byClass('intro').classList.add('fade-up')
+        setTimeout(() => {
+            byClass('intro').classList.add('hide')
+        }, 1500);
+    })
+
+    let res = await axios.get('assets.json')
+    Array.from(document.getElementsByClassName('popup-symbol')).forEach(el => {
+        el.firstElementChild.src = randomChoice(res.data.symbols)
     })
 }
 
