@@ -9,6 +9,9 @@ div, p, span, li, th, td {
 input:focus {
     outline: none;
 }
+a {
+    text-decoration: none;
+}
 
 .hide {
     display: none !important;
@@ -46,7 +49,7 @@ input:focus {
 
 .fade-up {
     animation-name: fade-up;
-    animation-duration: 1.5s;
+    animation-duration: 1s;
     animation-fill-mode: forwards;
 }
 @keyframes fade-up {
@@ -57,7 +60,6 @@ input:focus {
     100% {
         transform: translateY(-5vh);
         opacity: 0;
-        display: none;
     }
 }
 
@@ -346,4 +348,19 @@ tr:nth-child(1) td {
     display: inline-block;
     padding-top: 1vw;
     font-size: 1.5vw;
+}
+
+footer {
+    position: absolute;
+    bottom: 15px;
+    width: 100%;
+    text-align: center;
+}
+.separator {
+    display: inline-block;
+    width: 0px;
+    vertical-align: middle;
+    margin: 0 4px 0 4px;
+    border-radius: 10px;
+    border: solid 2px #2e2d2d;
 }

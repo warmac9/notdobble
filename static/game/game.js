@@ -374,7 +374,7 @@ async function onPageLoaded() {
         byClass('intro').classList.add('fade-up')
         setTimeout(() => {
             byClass('intro').classList.add('hide')
-        }, 1500);
+        }, 1000);
     })
 
     let res = await axios.get('assets.json')
