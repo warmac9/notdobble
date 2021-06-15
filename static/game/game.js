@@ -128,7 +128,7 @@ function startAnimation(elClass, animClass) {
     byClass(elClass).classList.remove(animClass)
     setTimeout(function() {
         byClass(elClass).classList.add(animClass)
-    }, 10)
+    }, 30)
 }
 
 

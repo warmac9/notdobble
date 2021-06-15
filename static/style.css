@@ -32,6 +32,12 @@ input:focus {
     50% {
         opacity: 0.3;
     }
+    75% {
+        transform: translateY(-10px);
+    }
+    80% {
+        transform: translateY(-10px);
+    }
     100% {
         transform: translateY(0px);
         opacity: 1;
@@ -308,7 +314,7 @@ tr:nth-child(1) td {
     padding: 10px;
 }
 .popup-symbol:hover {
-    animation-name: mini-explode;
+    animation-name: explode;
     animation-duration: 0.4s;
 }
 
