@@ -92,6 +92,45 @@ input:focus {
     }
 }
 
+.appear {
+    animation-name: appear;
+    animation-duration: 0.4s;
+}
+@keyframes appear {
+    0% {
+        transform: scale(0, 0);
+        opacity: 0;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1, 1);
+        opacity: 1;
+    }
+}
+
+.disappear {
+    animation-name: disappear;
+    animation-duration: 0.6s;
+}
+@keyframes disappear {
+    0% {
+        transform: scale(1, 1);
+        opacity: 1;
+    }
+    30% {
+        transform: scale(1.2, 1.2);
+        opacity: 1;
+    }
+    90% {
+        opacity: 0;
+    }
+    100% {
+        transform: scale(0, 0) rotateZ(120deg);
+    }
+}
+
 
 .canvas-container {
     position: absolute !important;
@@ -121,6 +160,12 @@ input:focus {
 }
 
 
+.player-name-input, .room-set-input, .room-set-but, .player-list-container, .popup-symbol {
+    border: solid 3px #414141;
+    border-radius: 10px;
+    color: #414141;
+    background-color: #fbfbfb;
+}
 .player-start-screen-area {
     position: absolute !important;
     left: 50%;
@@ -132,9 +177,6 @@ input:focus {
     width: 350px;
     padding: 10px;
     font-size: 40px;
-    color: #414141;
-    border: solid 3px #414141;
-    border-radius: 10px;
 }
 .player-name-input:focus {
     border-width: 4px;
@@ -170,9 +212,7 @@ input:checked ~ .player-not-ready-label {
     padding: 5px;
     font-size: 18px;
     font-weight: bold;
-    color: #414141;
-    border: solid 2px #414141;
-    border-radius: 10px;
+    border-width: 2px;
 }
 .room-set-input:focus {
     border-width: 3px;
@@ -180,11 +220,9 @@ input:checked ~ .player-not-ready-label {
 }
 .room-set-but {
     display: inline-block;
-    color: #414141;
     font-size: 18px;
     font-weight: bold;
-    border: solid 2px #414141;
-    border-radius: 10px;
+    border-width: 2px;
     padding: 5px;
     cursor: pointer;
 }
@@ -202,10 +240,6 @@ input:checked ~ .player-not-ready-label {
     padding: 30px;
     padding-bottom: 20px;
     font-size: 20px;
-    border: solid 3px #414141;
-    border-radius: 10px;
-    color: #414141;
-    background-color: #fbfbfb;
 }
 .player-list {
     padding-left: 40px;
@@ -225,12 +259,11 @@ table {
     border: solid 3px #2e2d2d;
     border-radius: 10px;
     padding: 15px;
+    background-color: #f8f8f8;
 }
 th, td {
     font-size: 30px;
     color: #4d4a4a;
-    background-color: #f8f8f8;
-    border-radius: 20px;
     padding: 25px !important;
 }
 td:first-child {
@@ -248,17 +281,17 @@ tr:nth-child(1) td {
 }
 
 
-.floating-text {
+.popup-symbol {
+    top: 120px;
+    left: 390px;
     position: absolute;
-    top: 0px;
-    left: 0px;
+    width: 80px;
+    height: 80px;
 }
-
-.floating-text span {
-    color: #630091;
-    font-size: 40px;
-    font-weight: bold;
-    background-color: #ffffff;
-    border: dashed 2px #2e2d2d;
-    user-select: none;
+.popup-symbol img {
+    padding: 10px;
+}
+.popup-symbol:hover {
+    animation-name: mini-explode;
+    animation-duration: 0.4s;
 }
