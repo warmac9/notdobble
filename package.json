@@ -4,13 +4,16 @@
   "description": "game",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node app.js"
+    "start": "node app.js",
+    "build": "npx rollup ./src/game.js --file ./static/game.js --format iife"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "express": "^4.17.1",
     "socket.io": "^4.1.0"
+  },
+  "devDependencies": {
+    "rollup": "^2.52.1"
   }
 }
