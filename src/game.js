@@ -373,6 +373,7 @@ async function onPageLoaded() {
         currentRoom = byClass('room-set-input').value
         startAnimation('room-set-but', 'mini-explode')
         socketManager.sendRoom(byClass('room-set-input').value)
+        byClass('player-ready-input').checked = false
     })
     document.addEventListener('click', (event) => {
         if(event.target != byClass('room-set-but')) 
