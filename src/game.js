@@ -389,7 +389,7 @@ async function onPageLoaded() {
 
 
     let res = await axios.get('assets.json')
-    let symbolsSrc = res.data.symbols.slice(1, 5)
+    let symbolsSrc = res.data.symbols
 
     let setSrcPopup = (prev=[]) => {
         let curSymbols = []
