@@ -292,6 +292,7 @@ export async function onRoundEnd(scorePlayers) {
             canvas.canvas.remove(image)
         })
     })
+    deck = undefined
     
     byClass('card-left').classList.add('hide')
     byClass('player-display').classList.add('hide')
