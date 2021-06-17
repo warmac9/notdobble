@@ -124,11 +124,22 @@ async function endScreen(players) {
     }
 }
 
-function startAnimation(elClass, animClass) {
-    byClass(elClass).classList.remove(animClass)
-    setTimeout(function() {
-        byClass(elClass).classList.add(animClass)
-    }, 30)
+function startAnimation(el, animClass) {
+    let animList = ['explode', 'mini-explode']
+
+    let animate = (el) => {
+        animList.forEach(anim => {
+            el.classList.remove(anim)
+        })
+        el.classList.remove(animClass)
+        setTimeout(function() {
+            el.classList.add(animClass)
+        }, 30)
+    }
+    if(typeof el == 'string')
+        Array.from(document.getElementsByClassName(el)).forEach(el => { animate(el) })
+    else
+        animate(el)
 }
 
 
@@ -208,7 +219,7 @@ export function onPlayerListChange(players) {
 
     }
 
-    if(oldPlayersList == undefined || (Object.entries(players).length != 0 && Object.keys(players).join() != oldPlayersList))
+    if(oldPlayersList != undefined && (Object.entries(players).length != 0 && Object.keys(players).join() != oldPlayersList))
         startAnimation('player-list-container', 'mini-explode')
 
     oldPlayersList = Object.keys(players).join()
@@ -350,7 +361,6 @@ async function onPageLoaded() {
             socketManager.sendName(byClass('player-name-input').value)
         }, playerSendNameTimeout)
     })
-    
     byClass('player-ready-input').addEventListener('change', (event) => {
         socketManager.sendReady(byClass('player-ready-input').checked)
     })
@@ -358,13 +368,11 @@ async function onPageLoaded() {
     byClass('room-set-input').addEventListener('keydown', (event) => {
         if(event.keyCode == 32) event.preventDefault()
     })
-
     byClass('room-set-but').addEventListener('click', (event) => {
         currentRoom = byClass('room-set-input').value
         startAnimation('room-set-but', 'mini-explode')
         socketManager.sendRoom(byClass('room-set-input').value)
     })
-    
     document.addEventListener('click', (event) => {
         if(event.target != byClass('room-set-but')) 
             byClass('room-set-input').value = currentRoom
@@ -377,10 +385,46 @@ async function onPageLoaded() {
         }, 1000);
     })
 
+
     let res = await axios.get('assets.json')
+    let symbolsSrc = res.data.symbols.slice(1, 5)
+
+    let setSrcPopup = (prev=[]) => {
+        let curSymbols = []
+
+        Array.from(document.getElementsByClassName('popup-symbol')).forEach(el => {
+            let randomSrc = randomChoice(symbolsSrc.filter(el => !prev.includes(el) && !curSymbols.includes(el)))
+            curSymbols.push(randomSrc)
+            el.firstElementChild.src = randomSrc
+        })
+
+        return curSymbols
+    }
+
+    let autoHidePopup = () => {
+        Array.from(document.getElementsByClassName('popup-symbol')).forEach(el => {
+            if(window.innerWidth > 1600 && window.innerHeight > 800)
+                el.classList.remove('hide')
+            else
+                el.classList.add('hide')
+        })
+    }
+
+    window.addEventListener('resize', autoHidePopup)
+    autoHidePopup()
+
     Array.from(document.getElementsByClassName('popup-symbol')).forEach(el => {
-        el.firstElementChild.src = randomChoice(res.data.symbols)
+        el.addEventListener('mouseenter', () => {
+            startAnimation(el, 'explode')
+        })
     })
+
+    let prevSymbols = []
+    setInterval(() => {
+        startAnimation('popup-symbol', 'mini-explode')
+        prevSymbols = setSrcPopup(prevSymbols)
+    }, 5000);
+    setSrcPopup()
 }
 
 document.addEventListener('DOMContentLoaded', onPageLoaded)

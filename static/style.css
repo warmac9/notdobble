@@ -4,7 +4,7 @@ html, body {
     overflow: hidden;
 }
 div, p, span, li, th, td {
-    font-family:Arial;
+    font-family: Arial;
 }
 input:focus {
     outline: none;
@@ -314,10 +314,6 @@ tr:nth-child(1) td {
 }
 .popup-symbol img {
     padding: 10px;
-}
-.popup-symbol:hover {
-    animation-name: explode;
-    animation-duration: 0.4s;
 }
 
 .intro {
