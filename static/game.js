@@ -531,9 +531,9 @@
             let node = document.createElement('LI');
             node.innerHTML = `<b>${name} </b>`;
             if(ready)
-                node.innerHTML += randomChoice(['is prepared.', '\'s ready to play!', '\'s excited to play.', 'is waiting for others to prepare.']);
+                node.innerHTML += '\'s ready to play!';
             else if(inGame)
-                node.innerHTML += randomChoice(['\'s in the game.', 'is currently playing.']);
+                node.innerHTML += '\'s in the game.';
             
             byClass('player-list').appendChild(node);
 
@@ -612,6 +612,7 @@
                 canvas.remove(image);
             });
         });
+        deck = undefined;
         
         byClass('card-left').classList.add('hide');
         byClass('player-display').classList.add('hide');

@@ -1,5 +1,5 @@
 import { byClass, wait, randomChoice } from './utils/utilFunc'
-import { generateCards, randomizeCards } from 'game/utils/deckGenerator'
+import { generateCards, randomizeCards } from './utils/deckGenerator'
 
 import * as canvas from './canvas/canvasManager'
 
