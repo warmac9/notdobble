@@ -199,6 +199,9 @@ a {
     transform: translate(-50%, -50%);
     width: 610px;
 }
+.player-start-screen-ready {
+    height: 60px;
+}
 .player-name-input {
     width: 350px;
     padding: 10px;
@@ -209,8 +212,11 @@ a {
     padding: 9px;
 }
 .player-not-ready-label, .player-ready-label {
-    padding: 15px;
+    padding: 20px 15px 13px 15px;
     font-size: 28px;
+    border: solid 4px #414141;
+    border-radius: 10px;
+    background-color: #fbfbfb;
     color: #a81717;
     white-space: nowrap;
     cursor: pointer;
