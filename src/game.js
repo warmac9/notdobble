@@ -1,10 +1,10 @@
-import { byClass, wait, randomChoice } from './utils/utilFunc.js'
-import { generateCards, randomizeCards } from './utils/deckGenerator.js'
+import { byClass, wait, randomChoice } from './utils/utilFunc'
+import { generateCards, randomizeCards } from 'game/utils/deckGenerator'
 
-import * as canvas from './canvas/canvasManager.js'
+import * as canvas from './canvas/canvasManager'
 
-import * as socketManager from './utils/socketManager.js'
-import { curPlayerId } from './utils/socketManager.js'
+import * as socketManager from './utils/socketManager'
+import { curPlayerId } from './utils/socketManager'
 
 
 const symbolsNum = 31
@@ -211,9 +211,9 @@ export function onPlayerListChange(players) {
         let node = document.createElement('LI')
         node.innerHTML = `<b>${name} </b>`
         if(ready)
-            node.innerHTML += randomChoice(['is prepared.', '\'s ready to play!', '\'s excited to play.', 'is waiting for others to prepare.'])
+            node.innerHTML += '\'s ready to play!'
         else if(inGame)
-            node.innerHTML += randomChoice(['\'s in the game.', 'is currently playing.'])
+            node.innerHTML += '\'s in the game.'
         
         byClass('player-list').appendChild(node)
 
