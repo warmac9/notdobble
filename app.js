@@ -151,9 +151,18 @@ function leaveRoom(socket, roomId, playerId) {
 }
 
 
+function debugNumPlayers() {
+  let numPlayers = 0
+  Object.values(rooms).forEach(room => {
+    numPlayers += Object.entries(room.players).length
+  })
+  console.log(`\n${new Date().toGMTString()}: ${numPlayers}`)
+}
+
+
 io.on('connection', (socket) => {
   joinRoom(socket, 'main', socket.id)
-  console.log(rooms)
+  debugNumPlayers()
 
   socket.on('set-room', (roomId) => {
     let oldRoomId = getRoom(socket)
@@ -161,8 +170,6 @@ io.on('connection', (socket) => {
 
     leaveRoom(socket, oldRoomId, socket.id)
     joinRoom(socket, (roomId == '' ? 'main' : roomId), socket.id, playerName)
-
-    console.log(rooms)
   })
 
   socket.on('set-player', (options) => {
@@ -175,6 +182,7 @@ io.on('connection', (socket) => {
 
   socket.on("disconnecting", () => {
     leaveRoom(socket, getRoom(socket), socket.id)
+    debugNumPlayers()
   })
 })
 
